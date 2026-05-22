@@ -100,17 +100,18 @@
       letter-spacing:.09em; color:var(--muted); border-bottom:1px solid var(--border);
       font-family:'Space Mono',monospace; white-space:nowrap;
       cursor:pointer; user-select:none; position:relative;
-      transition:color .15s;
+      transition:color .15s; text-align:center;
     }
+    .sum-table thead th:first-child { text-align:left; }
     .sum-table thead th:hover { color:var(--text); }
-    .sum-table thead th.r { text-align:right; }
     .sum-table thead th .sort-icon { margin-left:.3rem; opacity:.35; font-size:.6rem; }
     .sum-table thead th.sort-asc .sort-icon,
     .sum-table thead th.sort-desc .sort-icon { opacity:1; color:var(--accent); }
     .sum-table tbody tr { border-bottom:1px solid rgba(30,36,51,.45); transition:filter .15s; }
     .sum-table tbody tr:hover { filter:brightness(1.2); }
     .sum-table tbody td { padding:.43rem .75rem; vertical-align:middle; }
-    .sum-table tfoot td { padding:.48rem .75rem; border-top:2px solid var(--border); font-weight:700; font-family:'Space Mono',monospace; font-size:.74rem; }
+    .sum-table tfoot td { padding:.48rem .75rem; border-top:2px solid var(--border); font-weight:700; font-family:'Space Mono',monospace; font-size:.74rem; text-align:center; }
+    .sum-table tfoot td:first-child { text-align:left; }
 
     .tr-over td:first-child { border-left:3px solid var(--accent3); padding-left:.55rem; }
     .tr-warn td:first-child { border-left:3px solid var(--accent4); padding-left:.55rem; }
@@ -121,16 +122,13 @@
     .neg { color:var(--accent3); }
     .pos { color:var(--accent); }
     .badge-cat {
-      display:inline-block; padding:.13rem .48rem; border-radius:999px;
-      font-size:.58rem; font-weight:700; letter-spacing:.05em;
-      background:rgba(124,108,250,.15); color:var(--accent2);
-      border:1px solid rgba(124,108,250,.25); white-space:nowrap;
+      font-size:.74rem; font-weight:400; color:var(--text);
+      font-family:'Syne', sans-serif; white-space:nowrap;
     }
+    .badge-cat.active { color:var(--accent2); font-weight:600; }
 
-    /* BULLET CHART */
-    .bullet-wrap { display:flex; flex-direction:column; overflow-y:auto; max-height:440px; padding-right:.2rem; }
-    .bullet-wrap::-webkit-scrollbar { width:3px; }
-    .bullet-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+    /* BULLET CHART — no scroll, auto height */
+    .bullet-wrap { display:flex; flex-direction:column; }
     .bullet-row { display:grid; grid-template-columns:120px 1fr 90px 44px; align-items:center; gap:.6rem; padding:.42rem 0; border-bottom:1px solid rgba(30,36,51,.32); }
     .bullet-row:last-child { border-bottom:none; }
     .bullet-cat { font-size:.71rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -154,15 +152,16 @@
       position:sticky; top:0; background:var(--surface2); z-index:2;
       padding:.46rem .9rem; font-size:.57rem; text-transform:uppercase;
       letter-spacing:.09em; color:var(--muted); border-bottom:1px solid var(--border);
-      font-family:'Space Mono',monospace; text-align:left;
+      font-family:'Space Mono',monospace; text-align:center;
       cursor:pointer; user-select:none;
     }
+    .tx-table thead th:first-child { text-align:left; }
     .tx-table thead th:hover { color:var(--text); }
-    .tx-table thead th.r { text-align:right; }
     .tx-table tbody tr { border-bottom:1px solid rgba(30,36,51,.4); transition:background .12s; }
     .tx-table tbody tr:hover { background:rgba(255,255,255,.03); }
     .tx-table tbody td { padding:.4rem .9rem; }
-    .tx-table tfoot td { position:sticky; bottom:0; background:var(--surface2); padding:.46rem .9rem; border-top:1px solid var(--border); font-weight:700; font-family:'Space Mono',monospace; font-size:.74rem; }
+    .tx-table tfoot td { position:sticky; bottom:0; background:var(--surface2); padding:.46rem .9rem; border-top:1px solid var(--border); font-weight:700; font-family:'Space Mono',monospace; font-size:.74rem; text-align:center; }
+    .tx-table tfoot td:first-child { text-align:left; }
   </style>
 </head>
 <body>
@@ -173,7 +172,7 @@
   <header>
     <div class="logo"><div class="logo-dot"></div><h1>Finance<span>OS</span></h1></div>
     <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
-      <span id="filter-pill" onclick="applyFilter(activeFilter)" style="display:none;align-items:center;gap:.4rem;background:rgba(124,108,250,.2);border:1px solid rgba(124,108,250,.4);color:var(--accent2);border-radius:999px;padding:.25rem .7rem;font-size:.68rem;font-family:'Space Mono',monospace;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(124,108,250,.35)'" onmouseout="this.style.background='rgba(124,108,250,.2)'">—</span>
+      <span id="filter-pill" onclick="activeFilter=null;activeDayFilter=null;applyFilter(null)" style="display:none;align-items:center;gap:.4rem;background:rgba(124,108,250,.2);border:1px solid rgba(124,108,250,.4);color:var(--accent2);border-radius:999px;padding:.25rem .7rem;font-size:.68rem;font-family:'Space Mono',monospace;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(124,108,250,.35)'" onmouseout="this.style.background='rgba(124,108,250,.2)'">—</span>
       <div id="last-update">—</div>
     </div>
   </header>
@@ -363,7 +362,7 @@ function renderSummaryTable(total){
     tr.title = isActive ? 'Clic para quitar filtro' : 'Clic para filtrar por esta categoría';
 
     tr.innerHTML = `
-      <td><span class="badge-cat" style="${isActive?'background:rgba(124,108,250,.4);border-color:var(--accent2)':''}">${cat}</span></td>
+      <td><span class="badge-cat${isActive?' active':''}">${cat}</span></td>
       <td class="num">${fmt(spent)}</td>
       <td class="num" style="color:var(--muted)">${pctFmt(spent,total)}</td>
       <td class="num">${budget>0?fmt(budget):'—'}</td>
@@ -399,11 +398,21 @@ function initSortHeaders(total){
   if(initTh){ initTh.classList.add('sort-desc'); initTh.querySelector('.sort-icon').textContent='↓'; }
 }
 
-/* ── FILTER ENGINE ── */
+/* ── CATEGORY FILTER ENGINE ── */
 function applyFilter(cat){
   activeFilter = (activeFilter === cat) ? null : cat;
+  activeDayFilter = null; // reset day filter on category change
 
-  // Update filter pill in header
+  // Reset bar colors
+  if(lineChartRef){
+    lineChartRef.data.datasets[1].backgroundColor = ctx => {
+      const g = lineChartRef.ctx.createLinearGradient(0,0,0,200);
+      g.addColorStop(0,'rgba(0,229,160,.7)');
+      g.addColorStop(1,'rgba(0,229,160,.1)');
+      return g;
+    };
+  }
+
   const pill = document.getElementById('filter-pill');
   if(activeFilter){
     pill.textContent = '✕  '+activeFilter;
@@ -415,16 +424,13 @@ function applyFilter(cat){
   const txToUse = activeFilter ? allTxGlobal.filter(r=>r.categoria===activeFilter) : allTxGlobal;
   const filtTotal = txToUse.reduce((s,r)=>s+r.monto,0);
 
-  // Re-render summary table (highlight only)
   renderSummaryTable(totalGlobal);
 
-  // Update hero total
   document.getElementById('hero-total').textContent = fmt(filtTotal);
   document.getElementById('hero-sub').textContent   = txToUse.length+' transacciones'+(activeFilter?' · '+activeFilter:'  · '+Object.keys(
     allTxGlobal.reduce((acc,r)=>{acc[r.categoria]=1;return acc;},{})
   ).length+' categorías');
 
-  // Update line chart
   const byDay={};
   txToUse.forEach(r=>{ if(r.dmy) byDay[r.dmy.day]=(byDay[r.dmy.day]||0)+r.monto; });
   const sortedDays=Object.entries(byDay).map(([d,v])=>({d:+d,v})).sort((a,b)=>a.d-b.d);
@@ -435,7 +441,65 @@ function applyFilter(cat){
     lineChartRef.update();
   }
 
-  // Update TX table
+  const txTbody = document.getElementById('tx-tbody');
+  txTbody.innerHTML='';
+  [...txToUse].sort((a,b)=>b.dmy.day-a.dmy.day).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
+      <td><span class="badge-cat">${r.categoria||'—'}</span></td>
+      <td>${r.detalle||'—'}</td>
+      <td class="r" style="font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+    `;
+    txTbody.appendChild(tr);
+  });
+  document.getElementById('tx-tfoot').innerHTML=`<tr>
+    <td colspan="3" style="color:var(--muted)">Total</td>
+    <td class="r" style="color:var(--accent)">${fmt(filtTotal)}</td>
+  </tr>`;
+}
+
+/* ── DAY FILTER ── */
+let activeDayFilter = null;
+
+function applyDayFilter(day){
+  activeDayFilter = (activeDayFilter === day) ? null : day;
+
+  const pill = document.getElementById('filter-pill');
+  const catLabel = activeFilter ? activeFilter+' · ' : '';
+  const dayLabel = activeDayFilter ? 'Día '+activeDayFilter : null;
+  const label = [catLabel, dayLabel].filter(Boolean).join('');
+
+  if(activeFilter || activeDayFilter){
+    pill.textContent = '✕  ' + (label || 'Filtro activo');
+    pill.style.display = 'inline-flex';
+  } else {
+    pill.style.display = 'none';
+  }
+
+  // Highlight clicked bar
+  if(lineChartRef){
+    const bars = lineChartRef.data.labels;
+    lineChartRef.data.datasets[1].backgroundColor = bars.map((d,i) => {
+      if(activeDayFilter === null) {
+        const g = lineChartRef.ctx.createLinearGradient(0,0,0,200);
+        g.addColorStop(0,'rgba(0,229,160,.7)');
+        g.addColorStop(1,'rgba(0,229,160,.1)');
+        return g;
+      }
+      return d === activeDayFilter ? 'rgba(0,229,160,.9)' : 'rgba(0,229,160,.2)';
+    });
+    lineChartRef.update();
+  }
+
+  // Filter tx
+  let txToUse = activeFilter ? allTxGlobal.filter(r=>r.categoria===activeFilter) : allTxGlobal;
+  if(activeDayFilter !== null) txToUse = txToUse.filter(r=>r.dmy && r.dmy.day===activeDayFilter);
+  const filtTotal = txToUse.reduce((s,r)=>s+r.monto,0);
+
+  document.getElementById('hero-total').textContent = fmt(filtTotal);
+  document.getElementById('hero-sub').textContent   = txToUse.length+' transacciones'+(activeDayFilter?' · Día '+activeDayFilter:'')+(activeFilter?' · '+activeFilter:'');
+
   const txTbody = document.getElementById('tx-tbody');
   txTbody.innerHTML='';
   [...txToUse].sort((a,b)=>b.dmy.day-a.dmy.day).forEach(r=>{
@@ -525,7 +589,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
       <td class="num" style="color:var(--muted)">100%</td>
       <td class="num">${fmt(budgetTotal)}</td>
       <td class="num" style="color:${totColor}">${pctSpent.toFixed(2)}%</td>
-      <td class="num ${totalSaving>=0?'pos':'neg'}">${fmt(totalSaving)}</td>
+      <td class="num" style="color:${pctColor(pctSpent)}">${fmt(totalSaving)}</td>
     </tr>`;
 
     /* BULLET CHART — with spent amount label on right */
@@ -588,6 +652,12 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
       },
       options:{
         responsive:true, maintainAspectRatio:false,
+        onClick(evt, elements){
+          if(!elements.length){ applyDayFilter(null); return; }
+          const idx = elements[0].index;
+          const day = lineChartRef.data.labels[idx];
+          applyDayFilter(day);
+        },
         plugins:{
           legend:{display:false},
           tooltip:{
