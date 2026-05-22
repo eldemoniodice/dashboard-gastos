@@ -280,20 +280,16 @@ function parseDMY(s){
   return null;
 }
 
-// Fetches a CSV and skips the FIRST row (Google Sheets metadata),
-// then uses the SECOND row as headers.
-function parseCSV(url){
+// Generic: skip N rows then parse with headers
+function parseCSV(url, skipRows = 1){
   return fetch(url)
     .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
     .then(txt=>{
       const lines = txt.split('\n');
-      // Row 0 = Google metadata (blank or sheet title) → drop it
-      // Row 1 = real headers (Categoría, Budget) → keep as header
-      lines.shift();
-      const cleaned = lines.join('\n');
+      for(let i=0;i<skipRows;i++) lines.shift();
       return new Promise(res=>{
-        Papa.parse(cleaned, {
-          header: true,          // row 1 (now row 0 after shift) = headers
+        Papa.parse(lines.join('\n'), {
+          header: true,
           skipEmptyLines: true,
           complete: ({data}) => res(data)
         });
@@ -301,7 +297,35 @@ function parseCSV(url){
     });
 }
 
-Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
+// Budget CSV: auto-detect where the real header row is.
+// Scans rows until it finds one whose first cell looks like text (not a number),
+// then uses that row as the header.
+function parseBudgetCSV(url){
+  return fetch(url)
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+    .then(txt=>{
+      const lines = txt.split('\n').filter(l=>l.trim()!=='');
+      // Find the first line where col[0] is NOT a pure number → that's the header
+      let headerIdx = 0;
+      for(let i=0;i<lines.length;i++){
+        const firstCell = lines[i].split(',')[0].replace(/"/g,'').trim();
+        if(firstCell && isNaN(firstCell)){
+          headerIdx = i;
+          break;
+        }
+      }
+      const relevant = lines.slice(headerIdx).join('\n');
+      return new Promise(res=>{
+        Papa.parse(relevant, {
+          header: true,
+          skipEmptyLines: true,
+          complete: ({data}) => res(data)
+        });
+      });
+    });
+}
+
+Promise.all([parseCSV(CSV_TX, 1), parseBudgetCSV(CSV_BUD)])
   .then(([rawTx, rawBud]) => {
 
     /* ── DATE META ── */
