@@ -29,14 +29,14 @@
     }
     .wrapper { position:relative; z-index:1; max-width:1400px; margin:0 auto; padding:2rem 1.5rem; }
 
-    /* ── LOADER ── */
+    /* LOADER */
     #loader { position:fixed; inset:0; background:var(--bg); z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; transition:opacity .5s; }
     #loader.hidden { opacity:0; pointer-events:none; }
     .spinner { width:44px; height:44px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--accent); animation:spin .8s linear infinite; }
     @keyframes spin { to{transform:rotate(360deg)} }
     #loader p { font-size:.75rem; color:var(--muted); font-family:'Space Mono',monospace; }
 
-    /* ── HEADER ── */
+    /* HEADER */
     header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.8rem; gap:1rem; flex-wrap:wrap; }
     .logo { display:flex; align-items:center; gap:.7rem; }
     .logo-dot { width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px var(--accent); animation:pulse 2.4s ease-in-out infinite; }
@@ -50,29 +50,27 @@
     .fade-in { opacity:0; transform:translateY(14px); transition:opacity .5s, transform .5s; }
     .fade-in.visible { opacity:1; transform:none; }
 
-    /* ── CARD base ── */
+    /* CARD */
     .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.4rem; box-shadow:var(--glow); }
     .card-title { font-size:.62rem; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); margin-bottom:1.1rem; display:flex; align-items:center; gap:.45rem; }
     .card-title::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
 
-    /* ── TOP KPI ROW ── */
+    /* KPI ROW */
     .kpi-row { display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:1rem; margin-bottom:1.2rem; }
     @media(max-width:900px){ .kpi-row{grid-template-columns:1fr 1fr;} }
     @media(max-width:480px){ .kpi-row{grid-template-columns:1fr;} }
 
-    /* Hero card */
     .hero-card {
       background:linear-gradient(135deg,#0d1623 0%,#0e2040 100%);
       border:1px solid rgba(0,229,160,.22); border-radius:16px;
       padding:1.8rem 2rem; box-shadow:var(--glow), 0 0 50px rgba(0,229,160,.05);
       display:flex; flex-direction:column; justify-content:center; gap:.5rem;
     }
-    .hero-label { font-size:.62rem; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); }
-    .hero-month { font-size:.78rem; color:var(--accent2); font-family:'Space Mono',monospace; margin-bottom:.2rem; }
+    .hero-label  { font-size:.62rem; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); }
+    .hero-month  { font-size:.78rem; color:var(--accent2); font-family:'Space Mono',monospace; margin-bottom:.2rem; }
     .hero-amount { font-size:clamp(2rem,4vw,2.8rem); font-weight:800; font-family:'Space Mono',monospace; color:var(--accent); line-height:1.05; }
-    .hero-sub { font-size:.7rem; color:var(--muted); font-family:'Space Mono',monospace; margin-top:.15rem; }
+    .hero-sub    { font-size:.7rem; color:var(--muted); font-family:'Space Mono',monospace; margin-top:.15rem; }
 
-    /* Regular KPI */
     .kpi { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.2rem 1.4rem; box-shadow:var(--glow); display:flex; flex-direction:column; justify-content:center; gap:.3rem; transition:transform .2s; }
     .kpi:hover { transform:translateY(-2px); }
     .klabel { font-size:.58rem; text-transform:uppercase; letter-spacing:.13em; color:var(--muted); }
@@ -80,31 +78,29 @@
     .kvalue.green  { color:var(--accent); }
     .kvalue.yellow { color:var(--accent4); }
     .kvalue.purple { color:var(--accent2); }
-    .kvalue.red    { color:var(--accent3); }
     .ksub { font-size:.62rem; color:var(--muted); font-family:'Space Mono',monospace; }
 
-    /* progress bar inside KPI */
-    .kpi-prog { margin-top:.5rem; }
-    .kpi-prog-track { height:4px; background:var(--border); border-radius:4px; overflow:hidden; }
-    .kpi-prog-fill  { height:100%; border-radius:4px; background:var(--accent4); transition:width .8s ease; }
+    .kpi-prog { margin-top:.6rem; }
+    .kpi-prog-track { height:5px; background:var(--border); border-radius:4px; overflow:hidden; }
+    .kpi-prog-fill  { height:100%; border-radius:4px; transition:width .8s ease; }
 
-    /* ── MAIN GRID: table + bullet chart ── */
+    /* MAIN GRID */
     .main-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
     @media(max-width:1050px){ .main-grid{grid-template-columns:1fr;} }
 
-    /* ── SUMMARY TABLE ── */
+    /* SUMMARY TABLE */
     .sum-wrap { overflow-x:auto; }
     .sum-table { width:100%; border-collapse:collapse; font-size:.77rem; }
     .sum-table thead th {
-      padding:.48rem .75rem; font-size:.58rem; text-transform:uppercase;
+      padding:.5rem .8rem; font-size:.58rem; text-transform:uppercase;
       letter-spacing:.1em; color:var(--muted); border-bottom:1px solid var(--border);
-      font-family:'Space Mono',monospace; white-space:nowrap;
+      font-family:'Space Mono',monospace; white-space:nowrap; text-align:left;
     }
     .sum-table thead th.r { text-align:right; }
     .sum-table tbody tr { border-bottom:1px solid rgba(30,36,51,.45); transition:filter .15s; }
     .sum-table tbody tr:hover { filter:brightness(1.18); }
-    .sum-table tbody td { padding:.44rem .75rem; vertical-align:middle; }
-    .sum-table tfoot td { padding:.5rem .75rem; border-top:2px solid var(--border); font-weight:700; font-family:'Space Mono',monospace; font-size:.75rem; }
+    .sum-table tbody td { padding:.46rem .8rem; vertical-align:middle; }
+    .sum-table tfoot td { padding:.52rem .8rem; border-top:2px solid var(--border); font-weight:700; font-family:'Space Mono',monospace; font-size:.75rem; }
 
     /* left-border status stripe */
     .tr-over td:first-child { border-left:3px solid var(--accent3); padding-left:.6rem; }
@@ -123,27 +119,24 @@
       border:1px solid rgba(124,108,250,.25); white-space:nowrap;
     }
 
-    /* ── BULLET CHART (custom SVG-based via canvas) ── */
-    .bullet-wrap { display:flex; flex-direction:column; gap:0; overflow-y:auto; max-height:500px; padding-right:.2rem; }
+    /* BULLET CHART */
+    .bullet-wrap { display:flex; flex-direction:column; gap:0; overflow-y:auto; max-height:500px; padding-right:.3rem; }
     .bullet-wrap::-webkit-scrollbar { width:3px; }
     .bullet-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
-    .bullet-row { display:grid; grid-template-columns:130px 1fr 70px; align-items:center; gap:.7rem; padding:.42rem 0; border-bottom:1px solid rgba(30,36,51,.35); }
+    .bullet-row { display:grid; grid-template-columns:140px 1fr 52px; align-items:center; gap:.7rem; padding:.45rem 0; border-bottom:1px solid rgba(30,36,51,.35); }
     .bullet-row:last-child { border-bottom:none; }
     .bullet-cat { font-size:.72rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .bullet-track { position:relative; height:18px; background:rgba(255,255,255,.05); border-radius:4px; overflow:hidden; }
-    /* budget ghost bar */
+    .bullet-track { position:relative; height:20px; background:rgba(255,255,255,.05); border-radius:4px; overflow:hidden; }
     .bullet-budget { position:absolute; top:0; left:0; height:100%; background:rgba(255,255,255,.09); border-radius:4px; }
-    /* actual spend bar */
-    .bullet-spent  { position:absolute; top:3px; left:0; height:12px; border-radius:3px; transition:width .7s ease; }
-    /* target line (% of month elapsed) */
-    .bullet-target { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,.35); border-radius:1px; }
-    .bullet-pct { font-size:.68rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; }
+    .bullet-spent  { position:absolute; top:4px; left:0; height:12px; border-radius:3px; transition:width .7s ease; }
+    .bullet-target { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); border-radius:1px; }
+    .bullet-pct { font-size:.67rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; }
 
-    /* ── LINE CHART ── */
+    /* LINE */
     .line-wrap { position:relative; height:210px; }
 
-    /* ── TX TABLE ── */
+    /* TX TABLE */
     .tx-wrap { overflow-x:auto; max-height:420px; overflow-y:auto; }
     .tx-wrap::-webkit-scrollbar { width:4px; }
     .tx-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
@@ -152,8 +145,9 @@
       position:sticky; top:0; background:var(--surface2); z-index:2;
       padding:.48rem .9rem; font-size:.58rem; text-transform:uppercase;
       letter-spacing:.1em; color:var(--muted); border-bottom:1px solid var(--border);
-      font-family:'Space Mono',monospace;
+      font-family:'Space Mono',monospace; text-align:left;
     }
+    .tx-table thead th.r { text-align:right; }
     .tx-table tbody tr { border-bottom:1px solid rgba(30,36,51,.4); transition:background .12s; }
     .tx-table tbody tr:hover { background:rgba(255,255,255,.03); }
     .tx-table tbody td { padding:.4rem .9rem; }
@@ -182,26 +176,27 @@
     </div>
     <div class="kpi">
       <div class="klabel">Fecha Actual</div>
-      <div class="kvalue green" id="kpi-day" style="font-size:clamp(1rem,1.8vw,1.3rem)">—</div>
+      <div class="kvalue green" style="font-size:clamp(.95rem,1.6vw,1.2rem)" id="kpi-day">—</div>
     </div>
     <div class="kpi">
       <div class="klabel">Progreso del Mes</div>
       <div class="kvalue yellow" id="kpi-pct">—</div>
-      <div class="ksub" id="kpi-pct-sub">—</div>
+      <div class="ksub" id="kpi-pct-sub">— de — días</div>
       <div class="kpi-prog">
-        <div class="kpi-prog-track"><div class="kpi-prog-fill" id="kpi-prog-fill" style="width:0%"></div></div>
+        <div class="kpi-prog-track">
+          <div class="kpi-prog-fill" id="kpi-prog-fill" style="width:0%;background:var(--accent4)"></div>
+        </div>
       </div>
     </div>
     <div class="kpi">
       <div class="klabel">Días Restantes</div>
       <div class="kvalue purple" id="kpi-days-left">—</div>
-      <div class="ksub" id="kpi-days-sub">— días transcurridos</div>
+      <div class="ksub" id="kpi-days-sub">— días totales en el mes</div>
     </div>
   </div>
 
   <!-- SUMMARY TABLE + BULLET CHART -->
   <div class="main-grid fade-in" style="transition-delay:.09s">
-
     <div class="card">
       <div class="card-title">Resumen por Categoría</div>
       <div class="sum-wrap">
@@ -224,21 +219,19 @@
 
     <div class="card">
       <div class="card-title">Presupuesto vs Gasto — Gráfico de Bala</div>
-      <!-- legend -->
-      <div style="display:flex;gap:1.2rem;margin-bottom:.9rem;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:.4rem;font-size:.65rem;color:var(--muted)">
-          <div style="width:24px;height:8px;background:rgba(255,255,255,.09);border-radius:2px"></div> Budget
+      <div style="display:flex;gap:1.4rem;margin-bottom:.9rem;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:.4rem;font-size:.63rem;color:var(--muted)">
+          <div style="width:22px;height:8px;background:rgba(255,255,255,.09);border-radius:2px"></div>Budget
         </div>
-        <div style="display:flex;align-items:center;gap:.4rem;font-size:.65rem;color:var(--muted)">
-          <div style="width:24px;height:8px;background:var(--accent);border-radius:2px"></div> Gasto real
+        <div style="display:flex;align-items:center;gap:.4rem;font-size:.63rem;color:var(--muted)">
+          <div style="width:22px;height:8px;background:var(--accent);border-radius:2px"></div>Gasto real
         </div>
-        <div style="display:flex;align-items:center;gap:.4rem;font-size:.65rem;color:var(--muted)">
-          <div style="width:2px;height:12px;background:rgba(255,255,255,.4);border-radius:1px"></div> Meta del mes (días %)
+        <div style="display:flex;align-items:center;gap:.4rem;font-size:.63rem;color:var(--muted)">
+          <div style="width:2px;height:12px;background:rgba(255,255,255,.4);border-radius:1px"></div>Avance del mes
         </div>
       </div>
       <div class="bullet-wrap" id="bullet-wrap"></div>
     </div>
-
   </div>
 
   <!-- LINE CHART -->
@@ -254,11 +247,11 @@
       <table class="tx-table">
         <thead>
           <tr>
-            <th style="text-align:left">Fecha</th>
-            <th style="text-align:left">Categoría</th>
-            <th style="text-align:left">Concepto</th>
-            <th class="num">S/.</th>
-            <th class="num">%</th>
+            <th>Fecha</th>
+            <th>Categoría</th>
+            <th>Concepto</th>
+            <th class="r">S/.</th>
+            <th class="r">%</th>
           </tr>
         </thead>
         <tbody id="tx-tbody"></tbody>
@@ -266,67 +259,81 @@
       </table>
     </div>
   </div>
-
 </div>
 
 <script>
 const CSV_TX  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU0KFyqapDt5O_AvB89kCOjrSrljk8h2DVzKX017dg8hzplgfeuVe4l6a7d5o79bKImC7wMLcnpQXH/pub?gid=1366785679&single=true&output=csv';
 const CSV_BUD = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU0KFyqapDt5O_AvB89kCOjrSrljk8h2DVzKX017dg8hzplgfeuVe4l6a7d5o79bKImC7wMLcnpQXH/pub?gid=545803653&single=true&output=csv';
 
-const PALETTE = ['#00e5a0','#7c6cfa','#ff6b6b','#ffd166','#06d6a0','#118ab2','#ef476f','#a8dadc','#f4a261','#e76f51','#b5838d','#6d6875','#48cae4','#80b918','#e9c46a'];
-
-const fmt  = n => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:2}).format(n);
-const pctFmt = (a,b) => b ? ((a/b)*100).toFixed(2)+'%' : '—';
-
 const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+const fmt    = n => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:2}).format(n);
+const pctFmt = (a,b) => b ? ((a/b)*100).toFixed(2)+'%' : '—';
 
 function showError(m){ const b=document.getElementById('error-box'); b.textContent='⚠ '+m; b.style.display='block'; hideLoader(); }
 function hideLoader(){ const l=document.getElementById('loader'); l.classList.add('hidden'); setTimeout(()=>l.remove(),600); }
 function revealCards(){ document.querySelectorAll('.fade-in').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*90)); }
+function parseMonto(s){ return parseFloat((s||'').replace(/[^0-9.,-]/g,'').replace(',','.')) || 0; }
+function parseDMY(s){
+  const p=(s||'').trim().split('/');
+  if(p.length===3) return {day:+p[0],month:+p[1],year:+p[2]};
+  return null;
+}
 
+// Fetches a CSV and skips the FIRST row (Google Sheets metadata),
+// then uses the SECOND row as headers.
 function parseCSV(url){
   return fetch(url)
     .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
     .then(txt=>{
-      const lines=txt.split('\n'); lines.shift();
+      const lines = txt.split('\n');
+      // Row 0 = Google metadata (blank or sheet title) → drop it
+      // Row 1 = real headers (Categoría, Budget) → keep as header
+      lines.shift();
+      const cleaned = lines.join('\n');
       return new Promise(res=>{
-        Papa.parse(lines.join('\n'),{header:true,skipEmptyLines:true,complete:({data})=>res(data)});
+        Papa.parse(cleaned, {
+          header: true,          // row 1 (now row 0 after shift) = headers
+          skipEmptyLines: true,
+          complete: ({data}) => res(data)
+        });
       });
     });
-}
-
-function parseMonto(s){ return parseFloat((s||'').replace(/[^0-9.,-]/g,'').replace(',','.')) || 0; }
-
-// Parse DD/MM/YYYY → {day, month (1-based), year}
-function parseDMY(s){
-  const p = (s||'').trim().split('/');
-  if(p.length===3) return {day:+p[0], month:+p[1], year:+p[2]};
-  return null;
 }
 
 Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
   .then(([rawTx, rawBud]) => {
 
-    /* ── Current month/year ── */
+    /* ── DATE META ── */
     const now         = new Date();
-    const curMonth    = now.getMonth()+1;   // 1-based
+    const curMonth    = now.getMonth()+1;
     const curYear     = now.getFullYear();
     const today       = now.getDate();
     const daysInMonth = new Date(curYear, curMonth, 0).getDate();
     const daysLeft    = daysInMonth - today;
-    const pctMonthElapsed = today / daysInMonth * 100; // % of month gone
+    const pctMonthElapsed = today / daysInMonth * 100;
 
-    /* ── BUDGET MAP ── */
+    /* ── BUDGET MAP ──
+       CSV cols after skip: "Categoría" and "Budget"
+       PapaParse header:true will use exactly those names. */
     const budgetMap = {};
-    rawBud.forEach(r=>{
-      const keys = Object.keys(r);
-      const cat  = (r['Categoría']||r['Categoria']||r['Category']||r[keys[0]]||'').trim();
-      const bud  = parseMonto(r['Budget']||r['Presupuesto']||r[keys[1]]||'0');
-      if(cat) budgetMap[cat] = bud;
+    rawBud.forEach(r => {
+      // Normalize possible column name variants
+      const cat = (
+        r['Categoría'] || r['Categoria'] || r['Category'] ||
+        r[Object.keys(r)[0]] || ''
+      ).trim();
+      const bud = parseMonto(
+        r['Budget'] || r['Presupuesto'] ||
+        r[Object.keys(r)[1]] || '0'
+      );
+      if(cat && cat.toLowerCase() !== 'categoría' && cat.toLowerCase() !== 'categoria'){
+        budgetMap[cat] = bud;
+      }
     });
 
-    /* ── TRANSACTIONS — filter to current month ── */
-    const allTx = rawTx.map(r=>{
+    /* ── TRANSACTIONS filtered to current month ── */
+    const allTx = rawTx.map(r => {
       const fechaRaw = (r['Día']||r['Dia']||r['Fecha']||'').trim();
       const dmy      = parseDMY(fechaRaw);
       return {
@@ -336,23 +343,25 @@ Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
         categoria: (r['Categoría']||r['Categoria']||'').trim(),
         monto:     parseMonto(r['Monto'])
       };
-    }).filter(r=>r.monto>0 && r.dmy && r.dmy.month===curMonth && r.dmy.year===curYear);
+    }).filter(r => r.monto > 0 && r.dmy && r.dmy.month === curMonth && r.dmy.year === curYear);
 
-    if(!allTx.length){ showError('No hay transacciones para el mes actual ('+MONTHS_ES[curMonth-1]+' '+curYear+').'); return; }
+    if(!allTx.length){
+      showError('No hay transacciones para '+MONTHS_ES[curMonth-1]+' '+curYear+'. Verifica que la columna "Día" tenga formato DD/MM/YYYY.');
+      return;
+    }
 
     /* ── AGGREGATIONS ── */
-    const total = allTx.reduce((s,r)=>s+r.monto, 0);
+    const total = allTx.reduce((s,r) => s+r.monto, 0);
 
     const byCat = {};
-    allTx.forEach(r=>{ byCat[r.categoria]=(byCat[r.categoria]||0)+r.monto; });
-    const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+    allTx.forEach(r => { byCat[r.categoria] = (byCat[r.categoria]||0) + r.monto; });
 
     const byDay = {};
-    allTx.forEach(r=>{ if(r.dmy) byDay[r.dmy.day]=(byDay[r.dmy.day]||0)+r.monto; });
+    allTx.forEach(r => { if(r.dmy) byDay[r.dmy.day] = (byDay[r.dmy.day]||0) + r.monto; });
     const sortedDays = Object.entries(byDay).map(([d,v])=>({d:+d,v})).sort((a,b)=>a.d-b.d);
 
-    const budgetTotal = Object.values(budgetMap).reduce((s,v)=>s+v,0);
-    const pctUsed     = budgetTotal ? (total/budgetTotal*100) : 0;
+    const budgetTotal = Object.values(budgetMap).reduce((s,v)=>s+v, 0);
+    const pctSpent    = budgetTotal ? (total/budgetTotal*100) : 0;
 
     /* ── KPIs ── */
     const monthLabel = MONTHS_ES[curMonth-1]+' '+curYear;
@@ -360,67 +369,73 @@ Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
     document.getElementById('hero-total').textContent    = fmt(total);
     document.getElementById('hero-sub').textContent      = allTx.length+' transacciones registradas';
     document.getElementById('kpi-day').textContent       = now.toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'America/Lima'});
-    document.getElementById('kpi-pct').textContent       = pctUsed.toFixed(2)+' %';
-    document.getElementById('kpi-pct-sub').textContent   = fmt(total)+' de '+fmt(budgetTotal);
-    document.getElementById('kpi-prog-fill').style.width = Math.min(pctUsed,100).toFixed(1)+'%';
-    document.getElementById('kpi-prog-fill').style.background = pctUsed>100?'var(--accent3)':pctUsed>pctMonthElapsed?'var(--accent4)':'var(--accent)';
+    // Progreso del mes = días transcurridos / días totales del mes
+    document.getElementById('kpi-pct').textContent       = pctMonthElapsed.toFixed(1)+' %';
+    document.getElementById('kpi-pct-sub').textContent   = today+' de '+daysInMonth+' días';
+    document.getElementById('kpi-prog-fill').style.width = pctMonthElapsed.toFixed(1)+'%';
     document.getElementById('kpi-days-left').textContent = daysLeft;
-    document.getElementById('kpi-days-sub').textContent  = today+' días transcurridos';
+    document.getElementById('kpi-days-sub').textContent  = daysInMonth+' días totales en el mes';
     document.getElementById('line-month-label').textContent = monthLabel;
     document.getElementById('last-update').textContent   = 'Actualizado: '+now.toLocaleString('es-PE',{timeZone:'America/Lima'});
 
     /* ── SUMMARY TABLE ── */
-    const allCats = [...new Set([...catEntries.map(([k])=>k), ...Object.keys(budgetMap)])];
-    allCats.sort((a,b)=>(byCat[b]||0)-(byCat[a]||0));
+    // Union of categories from budget + actual, sorted by expense desc
+    const allCats = [...new Set([
+      ...Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k])=>k),
+      ...Object.keys(budgetMap)
+    ])];
+    allCats.sort((a,b) => (byCat[b]||0) - (byCat[a]||0));
 
     const tbody = document.getElementById('sum-tbody');
-    allCats.forEach(cat=>{
-      const spent  = byCat[cat]||0;
-      const budget = budgetMap[cat]||0;
+    allCats.forEach(cat => {
+      const spent  = byCat[cat]  || 0;
+      const budget = budgetMap[cat] || 0;
       const saving = budget - spent;
-      const pctT   = budget ? (spent/budget*100) : (spent>0?Infinity:0);
-      const pctTStr= budget ? pctT.toFixed(2)+'%' : (spent>0?'∞':'—');
+      const pctT   = budget ? (spent/budget*100) : (spent>0 ? Infinity : 0);
+      const pctTStr= budget ? pctT.toFixed(2)+'%' : (spent>0 ? '∞' : '—');
       const pctGasto = pctFmt(spent, total);
 
       const tr = document.createElement('tr');
-      if(!budget && spent>0)        tr.classList.add('tr-none');
-      else if(pctT>100)             tr.classList.add('tr-over');
-      else if(pctT>pctMonthElapsed) tr.classList.add('tr-warn');
-      else                          tr.classList.add('tr-ok');
+      if(!budget && spent>0)          tr.classList.add('tr-none');
+      else if(pctT > 100)             tr.classList.add('tr-over');
+      else if(pctT > pctMonthElapsed) tr.classList.add('tr-warn');
+      else                            tr.classList.add('tr-ok');
+
+      const pctColor = pctT>100 ? 'var(--accent3)' : pctT>pctMonthElapsed ? 'var(--accent4)' : 'var(--accent)';
 
       tr.innerHTML = `
         <td><span class="badge-cat">${cat}</span></td>
         <td class="num">${fmt(spent)}</td>
         <td class="num" style="color:var(--muted)">${pctGasto}</td>
-        <td class="num">${budget>0?fmt(budget):'—'}</td>
-        <td class="num" style="color:${pctT>100?'var(--accent3)':pctT>pctMonthElapsed?'var(--accent4)':'var(--accent)'}">${pctTStr}</td>
-        <td class="num ${saving>=0&&budget>0?'pos':'neg'}">${budget>0?fmt(saving):'—'}</td>
+        <td class="num">${budget>0 ? fmt(budget) : '—'}</td>
+        <td class="num" style="color:${pctColor}">${pctTStr}</td>
+        <td class="num ${saving>=0&&budget>0?'pos':'neg'}">${budget>0 ? fmt(saving) : '—'}</td>
       `;
       tbody.appendChild(tr);
     });
 
-    // Footer
     const totalSaving = budgetTotal - total;
+    const totPctColor = pctSpent>100 ? 'var(--accent3)' : pctSpent>pctMonthElapsed ? 'var(--accent4)' : 'var(--accent)';
     document.getElementById('sum-tfoot').innerHTML = `<tr>
       <td><strong>Total</strong></td>
       <td class="num">${fmt(total)}</td>
       <td class="num" style="color:var(--muted)">100%</td>
       <td class="num">${fmt(budgetTotal)}</td>
-      <td class="num" style="color:${pctUsed>100?'var(--accent3)':pctUsed>pctMonthElapsed?'var(--accent4)':'var(--accent)'}">${pctUsed.toFixed(2)}%</td>
+      <td class="num" style="color:${totPctColor}">${pctSpent.toFixed(2)}%</td>
       <td class="num ${totalSaving>=0?'pos':'neg'}">${fmt(totalSaving)}</td>
     </tr>`;
 
-    /* ── BULLET CHART (custom HTML) ── */
+    /* ── BULLET CHART ── */
     const bulletWrap = document.getElementById('bullet-wrap');
-    const maxVal = Math.max(...allCats.map(c=>Math.max(byCat[c]||0, budgetMap[c]||0)), 1);
+    const maxVal = Math.max(...allCats.map(c => Math.max(byCat[c]||0, budgetMap[c]||0)), 1);
 
-    allCats.forEach((cat, i)=>{
-      const spent  = byCat[cat]||0;
-      const budget = budgetMap[cat]||0;
-      const maxBar = Math.max(spent, budget, 1);
-      const budgetW= budget ? (budget/maxVal*100) : 0;
-      const spentW = spent  ? (spent /maxVal*100) : 0;
-      const targetW= pctMonthElapsed; // % of bar where "target" line is
+    allCats.forEach(cat => {
+      const spent  = byCat[cat]  || 0;
+      const budget = budgetMap[cat] || 0;
+      const ref    = Math.max(spent, budget, 1);
+      const budgetW= (Math.max(budget, spent) / maxVal * 100);
+      const spentW = (spent / maxVal * 100);
+      const targetW= (budget / maxVal * 100) * (pctMonthElapsed/100); // expected spend position
       const pctT   = budget ? (spent/budget*100) : null;
       const color  = pctT===null ? 'var(--muted)' : pctT>100 ? 'var(--accent3)' : pctT>pctMonthElapsed ? 'var(--accent4)' : 'var(--accent)';
       const pctLabel = pctT!==null ? pctT.toFixed(0)+'%' : '—';
@@ -430,7 +445,7 @@ Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
       row.innerHTML = `
         <div class="bullet-cat" title="${cat}">${cat}</div>
         <div class="bullet-track">
-          <div class="bullet-budget" style="width:${budgetW.toFixed(1)}%"></div>
+          <div class="bullet-budget" style="width:${(budget/maxVal*100).toFixed(1)}%"></div>
           <div class="bullet-spent"  style="width:${spentW.toFixed(1)}%;background:${color}"></div>
           <div class="bullet-target" style="left:${targetW.toFixed(1)}%"></div>
         </div>
@@ -440,40 +455,40 @@ Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
     });
 
     /* ── LINE CHART ── */
-    new Chart(document.getElementById('chartLine'),{
-      type:'line',
-      data:{
-        labels: sortedDays.map(x=>x.d),
-        datasets:[{
-          label:'Gasto diario',
-          data: sortedDays.map(x=>x.v),
-          borderColor:'var(--accent)',
-          backgroundColor:'rgba(0,229,160,.07)',
-          pointBackgroundColor:'var(--accent)',
-          pointRadius:4, pointHoverRadius:6,
-          fill:true, tension:.35, borderWidth:2
+    new Chart(document.getElementById('chartLine'), {
+      type: 'line',
+      data: {
+        labels: sortedDays.map(x => x.d),
+        datasets: [{
+          label: 'Gasto diario',
+          data:   sortedDays.map(x => x.v),
+          borderColor: 'var(--accent)',
+          backgroundColor: 'rgba(0,229,160,.07)',
+          pointBackgroundColor: 'var(--accent)',
+          pointRadius: 4, pointHoverRadius: 6,
+          fill: true, tension: .35, borderWidth: 2
         }]
       },
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{
-          legend:{display:false},
-          tooltip:{
-            callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: {display:false},
+          tooltip: {
+            callbacks: {label: ctx => ' '+fmt(ctx.parsed.y)},
             backgroundColor:'#1e2433',titleColor:'#e8ecf4',
             bodyColor:'#00e5a0',borderColor:'#2d3650',borderWidth:1
           }
         },
-        scales:{
-          x:{
-            title:{display:true,text:'Día del mes',color:'var(--muted)',font:{size:9,family:'Space Mono'}},
-            grid:{color:'rgba(255,255,255,.04)'},
-            ticks:{color:'#5a6380',font:{size:9,family:'Space Mono'}}
+        scales: {
+          x: {
+            title: {display:true,text:'Día del mes',color:'var(--muted)',font:{size:9,family:'Space Mono'}},
+            grid:  {color:'rgba(255,255,255,.04)'},
+            ticks: {color:'#5a6380',font:{size:9,family:'Space Mono'}}
           },
-          y:{
-            grid:{color:'rgba(255,255,255,.04)'},
-            ticks:{color:'#5a6380',font:{size:9,family:'Space Mono'},
-              callback:v=>'S/ '+v.toLocaleString('es-PE')}
+          y: {
+            grid:  {color:'rgba(255,255,255,.04)'},
+            ticks: {color:'#5a6380',font:{size:9,family:'Space Mono'},
+              callback: v => 'S/ '+v.toLocaleString('es-PE')}
           }
         }
       }
@@ -481,12 +496,10 @@ Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
 
     /* ── TX TABLE ── */
     const txTbody = document.getElementById('tx-tbody');
-    // Sort by date asc, then by original order
-    const sorted = [...allTx].sort((a,b)=> a.dmy.day - b.dmy.day);
-    sorted.forEach(r=>{
+    [...allTx].sort((a,b) => a.dmy.day - b.dmy.day).forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="num" style="color:var(--muted);text-align:left">${r.fechaRaw}</td>
+        <td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem">${r.fechaRaw}</td>
         <td><span class="badge-cat">${r.categoria||'—'}</span></td>
         <td>${r.detalle||'—'}</td>
         <td class="num" style="color:var(--accent3);font-weight:700">${fmt(r.monto)}</td>
@@ -503,7 +516,10 @@ Promise.all([parseCSV(CSV_TX), parseCSV(CSV_BUD)])
     hideLoader();
     revealCards();
   })
-  .catch(err=>{ console.error(err); showError('Error al cargar los datos. Verifica tu conexión y que las hojas sean públicas.'); });
+  .catch(err => {
+    console.error(err);
+    showError('Error al cargar los datos. Verifica tu conexión y que las hojas sean públicas.');
+  });
 </script>
 </body>
 </html>
