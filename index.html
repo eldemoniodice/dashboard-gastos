@@ -131,4 +131,313 @@
     }
     tbody tr { border-bottom: 1px solid rgba(30,36,51,.6); transition: background .15s; }
     tbody tr:hover { background: rgba(255,255,255,.03); }
-    tbody td { padding: .7rem 1rem; vertical
+    tbody td { padding: .7rem 1rem; vertical-align: middle; }
+    .badge {
+      display: inline-block; padding: .2rem .55rem; border-radius: 999px;
+      font-size: .65rem; font-weight: 600; letter-spacing: .06em;
+      background: rgba(124,108,250,.18); color: var(--accent2); border: 1px solid rgba(124,108,250,.3);
+    }
+    .amount-cell { font-family: 'Space Mono', monospace; color: var(--accent3); font-weight: 700; text-align: right; }
+    .date-cell { font-family: 'Space Mono', monospace; color: var(--muted); font-size: .72rem; }
+
+    /* ── LOADER ──────────────────────────────────────── */
+    #loader {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 1.2rem; z-index: 999;
+      transition: opacity .5s;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 3px solid var(--border); border-top-color: var(--accent);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader p { font-size: .8rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+    /* ── ERROR ───────────────────────────────────────── */
+    #error-box {
+      display: none; background: rgba(255,107,107,.1);
+      border: 1px solid rgba(255,107,107,.3); border-radius: 12px;
+      padding: 1.2rem 1.6rem; margin-bottom: 1.5rem; color: var(--accent3);
+      font-size: .85rem; font-family: 'Space Mono', monospace;
+    }
+
+    /* ── FADE-IN ──────────────────────────────────────── */
+    .fade-in { opacity: 0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
+    .fade-in.visible { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="spinner"></div>
+  <p>Cargando datos financieros…</p>
+</div>
+
+<div class="wrapper">
+
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <h1>Finance<span>OS</span></h1>
+    </div>
+    <div id="last-update">—</div>
+  </header>
+
+  <div id="error-box"></div>
+
+  <div class="kpi-grid fade-in">
+    <div class="kpi">
+      <div class="label">Gasto Total Acumulado</div>
+      <div class="value green" id="kpi-total">—</div>
+      <div class="sub" id="kpi-count">— registros</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Mayor Categoría</div>
+      <div class="value purple" id="kpi-top-cat">—</div>
+      <div class="sub" id="kpi-top-cat-val">—</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Día con Más Gasto</div>
+      <div class="value red" id="kpi-top-day">—</div>
+      <div class="sub" id="kpi-top-day-val">—</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Promedio por Registro</div>
+      <div class="value" id="kpi-avg">—</div>
+      <div class="sub">por transacción</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+
+    <div class="card fade-in" style="transition-delay:.1s">
+      <div class="card-title">Gasto por Categoría</div>
+      <div class="chart-wrap doughnut-container">
+        <canvas id="chartDoughnut"></canvas>
+        <div class="doughnut-center">
+          <div class="big" id="doughnut-label">—</div>
+          <div class="tiny">categorías</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card fade-in" style="transition-delay:.2s">
+      <div class="card-title">Gasto por Fecha</div>
+      <div class="chart-wrap tall">
+        <canvas id="chartBar"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card table-card fade-in" style="transition-delay:.3s">
+    <div class="card-title">Últimos 10 Gastos</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Concepto</th>
+          <th>Categoría</th>
+          <th style="text-align:right">Monto</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU0KFyqapDt5O_AvB89kCOjrSrljk8h2DVzKX017dg8hzplgfeuVe4l6a7d5o79bKImC7wMLcnpQXH/pub?gid=1366785679&single=true&output=csv';
+
+  const PALETTE = [
+    '#00e5a0','#7c6cfa','#ff6b6b','#ffd166','#06d6a0',
+    '#118ab2','#ef476f','#a8dadc','#f4a261','#e76f51'
+  ];
+
+  const fmt = n => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 }).format(n);
+
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = '⚠ ' + msg;
+    box.style.display = 'block';
+    hideLoader();
+  }
+
+  function hideLoader() {
+    const l = document.getElementById('loader');
+    l.classList.add('hidden');
+    setTimeout(() => l.remove(), 600);
+  }
+
+  function revealCards() {
+    document.querySelectorAll('.fade-in').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 80);
+    });
+  }
+
+  fetch(CSV_URL)
+    .then(response => {
+      if (!response.ok) throw new Error("Error en la respuesta de la red");
+      return response.text();
+    })
+    .then(csvText => {
+      // ⚠️ EL TRUCO: Cortamos la Fila 1 de Google Sheets porque tus títulos están en la Fila 2
+      const lineas = csvText.split('\n');
+      lineas.shift(); // Elimina la primera línea (que no son los encabezados)
+      const csvCorregido = lineas.join('\n');
+
+      Papa.parse(csvCorregido, {
+        header: true,
+        skipEmptyLines: true,
+        complete({ data, errors }) {
+          if (errors.length && !data.length) { showError('No se pudo leer el CSV. Verifica la URL o los permisos de la hoja.'); return; }
+
+          // ── parse rows ────────────────────────────────
+          const rows = data.map(r => {
+            const raw = (r['Monto'] || '').replace(/[^0-9.,-]/g, '').replace(',', '.');
+            return {
+              fecha:     (r['Día'] || r['Dia'] || r['Fecha'] || '').trim(),
+              detalle:   (r['Concepto'] || r['Detalle'] || '').trim(),
+              categoria: (r['Categoría'] || r['Categoria'] || '').trim(),
+              monto:     parseFloat(raw) || 0
+            };
+          }).filter(r => r.monto > 0);
+
+          if (!rows.length) { showError('El CSV no tiene filas con montos válidos. Revisa el formato de la columna "Monto".'); return; }
+
+          // ── KPIs ─────────────────────────────────────
+          const total  = rows.reduce((s, r) => s + r.monto, 0);
+          const avg    = total / rows.length;
+
+          // by category
+          const byCat = {};
+          rows.forEach(r => { byCat[r.categoria] = (byCat[r.categoria] || 0) + r.monto; });
+          const catEntries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+          const [topCat, topCatVal] = catEntries[0] || ['—', 0];
+
+          // by date
+          const byDate = {};
+          rows.forEach(r => { byDate[r.fecha] = (byDate[r.fecha] || 0) + r.monto; });
+          const dateEntries = Object.entries(byDate).sort((a,b) => b[1]-a[1]);
+          const [topDay, topDayVal] = dateEntries[0] || ['—', 0];
+
+          document.getElementById('kpi-total').textContent     = fmt(total);
+          document.getElementById('kpi-count').textContent     = rows.length + ' registros';
+          document.getElementById('kpi-top-cat').textContent   = topCat;
+          document.getElementById('kpi-top-cat-val').textContent = fmt(topCatVal);
+          document.getElementById('kpi-top-day').textContent   = topDay;
+          document.getElementById('kpi-top-day-val').textContent = fmt(topDayVal);
+          document.getElementById('kpi-avg').textContent       = fmt(avg);
+          document.getElementById('last-update').textContent   = 'Actualizado: ' + new Date().toLocaleString('es-PE', {timeZone: 'America/Lima'});
+
+          // ── DOUGHNUT ──────────────────────────────────
+          document.getElementById('doughnut-label').textContent = catEntries.length;
+
+          new Chart(document.getElementById('chartDoughnut'), {
+            type: 'doughnut',
+            data: {
+              labels: catEntries.map(([k]) => k),
+              datasets: [{
+                data: catEntries.map(([,v]) => v),
+                backgroundColor: PALETTE,
+                borderColor: '#11141b',
+                borderWidth: 3,
+                hoverOffset: 8
+              }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              cutout: '68%',
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: { color: '#5a6380', font: { size: 10, family: 'Syne' }, boxWidth: 10, padding: 12 }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: ctx => ' ' + fmt(ctx.parsed)
+                  },
+                  backgroundColor: '#1e2433', titleColor: '#e8ecf4',
+                  bodyColor: '#00e5a0', borderColor: '#2d3650', borderWidth: 1
+                }
+              }
+            }
+          });
+
+          // ── BAR ───────────────────────────────────────
+          const sortedDates = Object.entries(byDate).sort((a,b) => {
+            const ta = new Date(a[0].split('/').reverse().join('-'));
+            const tb = new Date(b[0].split('/').reverse().join('-'));
+            return ta - tb;
+          });
+
+          new Chart(document.getElementById('chartBar'), {
+            type: 'bar',
+            data: {
+              labels: sortedDates.map(([k]) => k),
+              datasets: [{
+                label: 'Gasto (S/)',
+                data: sortedDates.map(([,v]) => v),
+                backgroundColor: ctx => {
+                  const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 300);
+                  g.addColorStop(0, 'rgba(0,229,160,.85)');
+                  g.addColorStop(1, 'rgba(0,229,160,.1)');
+                  return g;
+                },
+                borderRadius: 6, borderSkipped: false
+              }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: { label: ctx => ' ' + fmt(ctx.parsed.y) },
+                  backgroundColor: '#1e2433', titleColor: '#e8ecf4',
+                  bodyColor: '#00e5a0', borderColor: '#2d3650', borderWidth: 1
+                }
+              },
+              scales: {
+                x: {
+                  grid: { color: 'rgba(255,255,255,.04)' },
+                  ticks: { color: '#5a6380', font: { size: 10, family: 'Space Mono' }, maxRotation: 45 }
+                },
+                y: {
+                  grid: { color: 'rgba(255,255,255,.04)' },
+                  ticks: { color: '#5a6380', font: { size: 10, family: 'Space Mono' },
+                    callback: v => 'S/ ' + v.toLocaleString('es-PE') }
+                }
+              }
+            }
+          });
+
+          // ── TABLE ─────────────────────────────────────
+          const last10 = [...rows].reverse().slice(0, 10);
+          const tbody  = document.getElementById('tbody');
+          last10.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="date-cell">${r.fecha || '—'}</td>
+              <td>${r.detalle || '—'}</td>
+              <td><span class="badge">${r.categoria || '—'}</span></td>
+              <td class="amount-cell">${fmt(r.monto)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          hideLoader();
+          revealCards();
+        }
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      showError('Error de red al descargar el CSV. Asegúrate de que la hoja sea pública.');
+    });
+</script>
+</body>
+</html>
