@@ -363,11 +363,11 @@ function renderSummaryTable(total){
 
     tr.innerHTML = `
       <td><span class="badge-cat${isActive?' active':''}">${cat}</span></td>
-      <td class="num">${fmt(spent)}</td>
-      <td class="num" style="color:var(--muted)">${pctFmt(spent,total)}</td>
-      <td class="num">${budget>0?fmt(budget):'—'}</td>
-      <td class="num" style="color:${color}">${pctTStr}</td>
-      <td class="num ${saving>=0&&budget>0?'pos':'neg'}">${budget>0?fmt(saving):'—'}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap">${fmt(spent)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap;color:var(--muted)">${pctFmt(spent,total)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap">${budget>0?fmt(budget):'—'}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap;color:${color}">${pctTStr}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap;color:${budget>0?pctColor(pctT):'var(--muted)'}">${budget>0?fmt(saving):'—'}</td>
     `;
     tr.addEventListener('click', ()=> applyFilter(cat));
     tbody.appendChild(tr);
@@ -449,13 +449,13 @@ function applyFilter(cat){
       <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
       <td><span class="badge-cat">${r.categoria||'—'}</span></td>
       <td>${r.detalle||'—'}</td>
-      <td class="r" style="font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
     `;
     txTbody.appendChild(tr);
   });
   document.getElementById('tx-tfoot').innerHTML=`<tr>
     <td colspan="3" style="color:var(--muted)">Total</td>
-    <td class="r" style="color:var(--accent)">${fmt(filtTotal)}</td>
+    <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent)">${fmt(filtTotal)}</td>
   </tr>`;
 }
 
@@ -500,6 +500,14 @@ function applyDayFilter(day){
   document.getElementById('hero-total').textContent = fmt(filtTotal);
   document.getElementById('hero-sub').textContent   = txToUse.length+' transacciones'+(activeDayFilter?' · Día '+activeDayFilter:'')+(activeFilter?' · '+activeFilter:'');
 
+  // Update summary table with filtered spending per category
+  const filtByCat = {};
+  txToUse.forEach(r=>{ filtByCat[r.categoria]=(filtByCat[r.categoria]||0)+r.monto; });
+  const snap = tableData.map(r=>({...r}));
+  tableData.forEach(r=>{ r.spent=filtByCat[r.cat]||0; r.total=filtTotal||1; });
+  renderSummaryTable(filtTotal||1);
+  tableData.forEach((r,i)=>{ r.spent=snap[i].spent; r.total=snap[i].total; });
+
   const txTbody = document.getElementById('tx-tbody');
   txTbody.innerHTML='';
   [...txToUse].sort((a,b)=>b.dmy.day-a.dmy.day).forEach(r=>{
@@ -508,13 +516,13 @@ function applyDayFilter(day){
       <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
       <td><span class="badge-cat">${r.categoria||'—'}</span></td>
       <td>${r.detalle||'—'}</td>
-      <td class="r" style="font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
     `;
     txTbody.appendChild(tr);
   });
   document.getElementById('tx-tfoot').innerHTML=`<tr>
     <td colspan="3" style="color:var(--muted)">Total</td>
-    <td class="r" style="color:var(--accent)">${fmt(filtTotal)}</td>
+    <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent)">${fmt(filtTotal)}</td>
   </tr>`;
 }
 
@@ -585,11 +593,11 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     const totColor=pctColor(pctSpent);
     document.getElementById('sum-tfoot').innerHTML=`<tr>
       <td><strong>Total</strong></td>
-      <td class="num">${fmt(totalGlobal)}</td>
-      <td class="num" style="color:var(--muted)">100%</td>
-      <td class="num">${fmt(budgetTotal)}</td>
-      <td class="num" style="color:${totColor}">${pctSpent.toFixed(2)}%</td>
-      <td class="num" style="color:${pctColor(pctSpent)}">${fmt(totalSaving)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap">${fmt(totalGlobal)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;color:var(--muted)">100%</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap">${fmt(budgetTotal)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;color:${totColor}">${pctSpent.toFixed(2)}%</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;white-space:nowrap;color:${pctColor(pctSpent)}">${fmt(totalSaving)}</td>
     </tr>`;
 
     /* BULLET CHART — with spent amount label on right */
@@ -709,13 +717,13 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
         <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
         <td><span class="badge-cat">${r.categoria||'—'}</span></td>
         <td>${r.detalle||'—'}</td>
-        <td class="r" style="font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+        <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
       `;
       txTbody.appendChild(tr);
     });
     document.getElementById('tx-tfoot').innerHTML=`<tr>
       <td colspan="3" style="color:var(--muted)">Total</td>
-      <td class="r" style="color:var(--accent)">${fmt(totalGlobal)}</td>
+      <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent)">${fmt(totalGlobal)}</td>
     </tr>`;
 
     hideLoader();
