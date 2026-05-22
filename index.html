@@ -166,7 +166,7 @@
 </head>
 <body>
 
-<div id="loader"><div class="spinner"></div><p>Cargando datos…</p></div>
+<div id="loader"><div class="spinner"></div><p>Loading data…</p></div>
 
 <div class="wrapper">
   <header>
@@ -187,17 +187,17 @@
       <div class="hero-sub" id="hero-sub">—</div>
     </div>
     <div class="mini-kpi">
-      <div class="mk-label">Fecha Actual</div>
+      <div class="mk-label">Today</div>
       <div class="mk-value green" id="kpi-day">—</div>
     </div>
     <div class="mini-kpi">
-      <div class="mk-label">Progreso del Mes</div>
+      <div class="mk-label">% Progress</div>
       <div class="mk-value yellow" id="kpi-pct">—</div>
       <div class="mk-sub" id="kpi-pct-sub">—</div>
       <div class="mk-prog-track"><div class="mk-prog-fill" id="kpi-prog-fill" style="width:0%"></div></div>
     </div>
     <div class="mini-kpi">
-      <div class="mk-label">Días Restantes</div>
+      <div class="mk-label">Days Left</div>
       <div class="mk-value purple" id="kpi-days-left">—</div>
       <div class="mk-sub" id="kpi-days-sub">—</div>
     </div>
@@ -206,17 +206,17 @@
   <!-- ROW 2: Sortable summary table + Bullet chart -->
   <div class="mid-row fade-in" style="transition-delay:.08s">
     <div class="card">
-      <div class="card-title">Resumen por Categoría <span style="margin-left:.5rem;font-size:.55rem;color:var(--muted);font-family:'Space Mono',monospace">↕ clic en columna para ordenar</span></div>
+      <div class="card-title">Summary by Category <span style="margin-left:.5rem;font-size:.55rem;color:var(--muted);font-family:'Space Mono',monospace">↕ click column to sort</span></div>
       <div class="sum-wrap">
         <table class="sum-table" id="sum-table">
           <thead>
             <tr>
-              <th data-col="cat"  data-type="str">Categoría <span class="sort-icon">↕</span></th>
-              <th data-col="spent" data-type="num" class="r sort-desc">Gastos S/ <span class="sort-icon">↓</span></th>
-              <th data-col="pctGasto" data-type="num" class="r">% Gasto <span class="sort-icon">↕</span></th>
-              <th data-col="budget" data-type="num" class="r">Presupuesto <span class="sort-icon">↕</span></th>
+              <th data-col="cat"  data-type="str">Category <span class="sort-icon">↕</span></th>
+              <th data-col="spent" data-type="num" class="r sort-desc">Expense S/ <span class="sort-icon">↓</span></th>
+              <th data-col="pctGasto" data-type="num" class="r">% Expense <span class="sort-icon">↕</span></th>
+              <th data-col="budget" data-type="num" class="r">Budget <span class="sort-icon">↕</span></th>
               <th data-col="pctTarget" data-type="num" class="r">% Target <span class="sort-icon">↕</span></th>
-              <th data-col="saving" data-type="num" class="r">Ahorro <span class="sort-icon">↕</span></th>
+              <th data-col="saving" data-type="num" class="r">Savings <span class="sort-icon">↕</span></th>
             </tr>
           </thead>
           <tbody id="sum-tbody"></tbody>
@@ -226,11 +226,11 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Presupuesto vs Gasto — Gráfico de Bala</div>
+      <div class="card-title">Budget vs Expense — Bullet Chart</div>
       <div style="display:flex;gap:1.2rem;margin-bottom:.8rem;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:20px;height:7px;background:rgba(255,255,255,.08);border-radius:2px"></div>Budget</div>
-        <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:20px;height:7px;background:var(--accent);border-radius:2px"></div>Gasto real</div>
-        <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:2px;height:11px;background:rgba(255,255,255,.38);border-radius:1px"></div>Avance del mes</div>
+        <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:20px;height:7px;background:var(--accent);border-radius:2px"></div>Actual Expense</div>
+        <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:2px;height:11px;background:rgba(255,255,255,.38);border-radius:1px"></div>Month Progress</div>
       </div>
       <div class="bullet-wrap" id="bullet-wrap"></div>
     </div>
@@ -238,21 +238,21 @@
 
   <!-- ROW 3: Timeline -->
   <div class="card timeline-card fade-in" style="transition-delay:.16s">
-    <div class="card-title">Línea de Tiempo — Gasto Diario <span id="line-month-label" style="color:var(--accent2);margin-left:.4rem;font-size:.6rem"></span></div>
+    <div class="card-title">Daily Expense Timeline <span id="line-month-label" style="color:var(--accent2);margin-left:.4rem;font-size:.6rem"></span></div>
     <div class="line-wrap"><canvas id="chartLine"></canvas></div>
   </div>
 
   <!-- ROW 4: TX table -->
   <div class="card fade-in" style="transition-delay:.24s">
-    <div class="card-title">Detalle de Transacciones</div>
+    <div class="card-title">Transaction Detail</div>
     <div class="tx-wrap">
       <table class="tx-table">
         <thead>
           <tr>
-            <th>Día</th>
-            <th>Categoría</th>
-            <th>Concepto</th>
-            <th class="r">Monto</th>
+            <th>Day</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th class="r">Amount</th>
           </tr>
         </thead>
         <tbody id="tx-tbody"></tbody>
@@ -265,7 +265,7 @@
 <script>
 const CSV_TX  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU0KFyqapDt5O_AvB89kCOjrSrljk8h2DVzKX017dg8hzplgfeuVe4l6a7d5o79bKImC7wMLcnpQXH/pub?gid=1366785679&single=true&output=csv';
 const CSV_BUD = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU0KFyqapDt5O_AvB89kCOjrSrljk8h2DVzKX017dg8hzplgfeuVe4l6a7d5o79bKImC7wMLcnpQXH/pub?gid=545803653&single=true&output=csv';
-const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MONTHS_ES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const fmt    = n => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:2}).format(n);
 const pctFmt = (a,b) => b ? ((a/b)*100).toFixed(2)+'%' : '—';
 
@@ -301,11 +301,11 @@ function parseBudgetCSV(url){
 let sortState   = { col:'pctTarget', dir:'desc' };
 let tableData   = [];
 let activeFilter = null;   // null = sin filtro, string = categoría activa
-let allTxGlobal  = [];     // referencia global a transacciones del mes
-let lineChartRef = null;   // referencia al Chart.js de la línea
+let allTxGlobal  = [];     // referencia global a transactions del mes
+let lineChartRef = null;   // referencia al Chart.js of la línea
 let totalGlobal  = 0;
 
-/* Color según % Target: ≥99.9 rojo, ≥75 amarillo, resto verde */
+/* Color según % Target: ≥99.9 rojo, ≥75 amarillo, resto verof */
 function pctColor(pctT){
   if(pctT === null || pctT === undefined) return 'var(--muted)';
   if(pctT >= 99.9) return 'var(--accent3)';
@@ -359,7 +359,7 @@ function renderSummaryTable(total){
     tr.classList.add(cls);
     if(isActive) tr.style.outline = '2px solid var(--accent2)';
     tr.style.cursor = 'pointer';
-    tr.title = isActive ? 'Clic para quitar filtro' : 'Clic para filtrar por esta categoría';
+    tr.title = isActive ? 'Click to remove filter' : 'Click to filter by this category';
 
     tr.innerHTML = `
       <td><span class="badge-cat${isActive?' active':''}">${cat}</span></td>
@@ -427,9 +427,9 @@ function applyFilter(cat){
   renderSummaryTable(totalGlobal);
 
   document.getElementById('hero-total').textContent = fmt(filtTotal);
-  document.getElementById('hero-sub').textContent   = txToUse.length+' transacciones'+(activeFilter?' · '+activeFilter:'  · '+Object.keys(
+  document.getElementById('hero-sub').textContent   = txToUse.length+' transactions'+(activeFilter?' · '+activeFilter:'  · '+Object.keys(
     allTxGlobal.reduce((acc,r)=>{acc[r.categoria]=1;return acc;},{})
-  ).length+' categorías');
+  ).length+' categories');
 
   const byDay={};
   txToUse.forEach(r=>{ if(r.dmy) byDay[r.dmy.day]=(byDay[r.dmy.day]||0)+r.monto; });
@@ -467,11 +467,11 @@ function applyDayFilter(day){
 
   const pill = document.getElementById('filter-pill');
   const catLabel = activeFilter ? activeFilter+' · ' : '';
-  const dayLabel = activeDayFilter ? 'Día '+activeDayFilter : null;
+  const dayLabel = activeDayFilter ? 'Day '+activeDayFilter : null;
   const label = [catLabel, dayLabel].filter(Boolean).join('');
 
   if(activeFilter || activeDayFilter){
-    pill.textContent = '✕  ' + (label || 'Filtro activo');
+    pill.textContent = '✕  ' + (label || 'Active filter');
     pill.style.display = 'inline-flex';
   } else {
     pill.style.display = 'none';
@@ -498,7 +498,7 @@ function applyDayFilter(day){
   const filtTotal = txToUse.reduce((s,r)=>s+r.monto,0);
 
   document.getElementById('hero-total').textContent = fmt(filtTotal);
-  document.getElementById('hero-sub').textContent   = txToUse.length+' transacciones'+(activeDayFilter?' · Día '+activeDayFilter:'')+(activeFilter?' · '+activeFilter:'');
+  document.getElementById('hero-sub').textContent   = txToUse.length+' transactions'+(activeDayFilter?' · Day '+activeDayFilter:'')+(activeFilter?' · '+activeFilter:'');
 
   // Update summary table with filtered spending per category
   const filtByCat = {};
@@ -557,7 +557,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
       monto:parseMonto(r['Monto'])
     })).filter(r=>r.monto>0 && r.dmy && r.dmy.month===curMonth && r.dmy.year===curYear);
 
-    if(!allTxGlobal.length){ showError('No hay transacciones para '+MONTHS_ES[curMonth-1]+' '+curYear+'.'); return; }
+    if(!allTxGlobal.length){ showError('No transactions found for '+MONTHS_ES[curMonth-1]+' '+curYear+'.'); return; }
 
     totalGlobal = allTxGlobal.reduce((s,r)=>s+r.monto,0);
     const byCat={};
@@ -572,15 +572,15 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     const monthLabel=MONTHS_ES[curMonth-1]+' '+curYear;
     document.getElementById('hero-month').textContent   = monthLabel;
     document.getElementById('hero-total').textContent   = fmt(totalGlobal);
-    document.getElementById('hero-sub').textContent     = allTxGlobal.length+' transacciones · '+Object.keys(byCat).length+' categorías';
+    document.getElementById('hero-sub').textContent     = allTxGlobal.length+' transactions · '+Object.keys(byCat).length+' categories';
     document.getElementById('kpi-day').textContent      = now.toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'America/Lima'});
     document.getElementById('kpi-pct').textContent      = pctMonthElapsed.toFixed(1)+' %';
-    document.getElementById('kpi-pct-sub').textContent  = today+' de '+daysInMonth+' días';
+    document.getElementById('kpi-pct-sub').textContent  = today+' of '+daysInMonth+' days';
     document.getElementById('kpi-prog-fill').style.width= pctMonthElapsed.toFixed(1)+'%';
     document.getElementById('kpi-days-left').textContent= daysLeft;
-    document.getElementById('kpi-days-sub').textContent = daysInMonth+' días en el mes';
+    document.getElementById('kpi-days-sub').textContent = daysInMonth+' days in month';
     document.getElementById('line-month-label').textContent = monthLabel;
-    document.getElementById('last-update').textContent  = 'Actualizado: '+now.toLocaleString('es-PE',{timeZone:'America/Lima'});
+    document.getElementById('last-update').textContent  = 'Updated: '+now.toLocaleString('es-PE',{timeZone:'America/Lima'});
 
     /* SUMMARY TABLE */
     const allCats=[...new Set([...Object.keys(byCat),...Object.keys(budgetMap)])];
@@ -635,7 +635,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
         datasets:[
           {
             type:'line',
-            label:'Tendencia',
+            label:'Trend',
             data: sortedDays.map(x=>x.v),
             borderColor:'rgba(0,229,160,.35)',
             backgroundColor:'transparent',
@@ -645,7 +645,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
           },
           {
             type:'bar',
-            label:'Gasto del día',
+            label:'Day expense',
             data: sortedDays.map(x=>x.v),
             backgroundColor: ctx=>{
               const g=ctx.chart.ctx.createLinearGradient(0,0,0,200);
@@ -678,7 +678,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
           x:{
             grid:{color:'rgba(255,255,255,.03)'},
             ticks:{color:'#5a6380',font:{size:9,family:'Space Mono'}},
-            title:{display:true,text:'Día del mes',color:'var(--muted)',font:{size:9,family:'Space Mono'}}
+            title:{display:true,text:'Day of month',color:'var(--muted)',font:{size:9,family:'Space Mono'}}
           },
           y:{
             grid:{color:'rgba(255,255,255,.03)'},
@@ -729,7 +729,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     hideLoader();
     revealCards();
   })
-  .catch(err=>{ console.error(err); showError('Error al cargar los datos. Verifica tu conexión y que las hojas sean públicas.'); });
+  .catch(err=>{ console.error(err); showError('Error loading data. Check your connection and that the sheets are public.'); });
 </script>
 </body>
 </html>
