@@ -300,8 +300,8 @@
           const rows = data.map(r => {
             const raw = (r['Monto'] || '').replace(/[^0-9.,-]/g, '').replace(',', '.');
             return {
-              fecha:     (r['Fecha'] || '').trim(),
-              detalle:   (r['Detalle'] || '').trim(),
+              Día:     (r['Día'] || '').trim(),
+              Concepto:   (r['Concepto'] || '').trim(),
               categoria: (r['Categoría'] || r['Categoria'] || '').trim(),
               monto:     parseFloat(raw) || 0
             };
