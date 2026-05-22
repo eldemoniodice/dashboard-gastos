@@ -131,13 +131,14 @@
     .bullet-wrap { display:flex; flex-direction:column; overflow-y:auto; max-height:440px; padding-right:.2rem; }
     .bullet-wrap::-webkit-scrollbar { width:3px; }
     .bullet-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-    .bullet-row { display:grid; grid-template-columns:130px 1fr 52px; align-items:center; gap:.65rem; padding:.42rem 0; border-bottom:1px solid rgba(30,36,51,.32); }
+    .bullet-row { display:grid; grid-template-columns:120px 1fr 90px 44px; align-items:center; gap:.6rem; padding:.42rem 0; border-bottom:1px solid rgba(30,36,51,.32); }
     .bullet-row:last-child { border-bottom:none; }
     .bullet-cat { font-size:.71rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .bullet-track { position:relative; height:18px; background:rgba(255,255,255,.05); border-radius:4px; overflow:hidden; }
     .bullet-budget { position:absolute; top:0; left:0; height:100%; background:rgba(255,255,255,.08); border-radius:4px; }
     .bullet-spent  { position:absolute; top:3px; left:0; height:12px; border-radius:3px; transition:width .7s ease; }
     .bullet-target { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,.38); border-radius:1px; }
+    .bullet-amt { font-size:.66rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; color:var(--text); }
     .bullet-pct { font-size:.66rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; }
 
     /* ── ROW 3: Line chart (timeline) ── */
@@ -171,7 +172,10 @@
 <div class="wrapper">
   <header>
     <div class="logo"><div class="logo-dot"></div><h1>Finance<span>OS</span></h1></div>
-    <div id="last-update">—</div>
+    <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
+      <span id="filter-pill" onclick="applyFilter(activeFilter)" style="display:none;align-items:center;gap:.4rem;background:rgba(124,108,250,.2);border:1px solid rgba(124,108,250,.4);color:var(--accent2);border-radius:999px;padding:.25rem .7rem;font-size:.68rem;font-family:'Space Mono',monospace;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(124,108,250,.35)'" onmouseout="this.style.background='rgba(124,108,250,.2)'">—</span>
+      <div id="last-update">—</div>
+    </div>
   </header>
   <div id="error-box"></div>
 
@@ -294,9 +298,27 @@ function parseBudgetCSV(url){
     });
 }
 
-/* ── SORT STATE ── */
-let sortState = { col:'spent', dir:'desc' };
-let tableData = []; // stores row objects for re-sorting
+/* ── STATE ── */
+let sortState   = { col:'pctTarget', dir:'desc' };
+let tableData   = [];
+let activeFilter = null;   // null = sin filtro, string = categoría activa
+let allTxGlobal  = [];     // referencia global a transacciones del mes
+let lineChartRef = null;   // referencia al Chart.js de la línea
+let totalGlobal  = 0;
+
+/* Color según % Target: ≥99.9 rojo, ≥75 amarillo, resto verde */
+function pctColor(pctT){
+  if(pctT === null || pctT === undefined) return 'var(--muted)';
+  if(pctT >= 99.9) return 'var(--accent3)';
+  if(pctT >= 75)   return 'var(--accent4)';
+  return 'var(--accent)';
+}
+function rowClass(pctT, hasBudget, hasSpend){
+  if(!hasBudget && hasSpend) return 'tr-none';
+  if(pctT >= 99.9) return 'tr-over';
+  if(pctT >= 75)   return 'tr-warn';
+  return 'tr-ok';
+}
 
 function getRowVal(row, col){
   switch(col){
@@ -304,16 +326,17 @@ function getRowVal(row, col){
     case 'spent':     return row.spent;
     case 'pctGasto':  return row.spent / (row.total||1);
     case 'budget':    return row.budget;
-    case 'pctTarget': return row.budget ? row.spent/row.budget : (row.spent>0?Infinity:0);
+    case 'pctTarget': return row.budget ? row.spent/row.budget*100 : (row.spent>0?Infinity:0);
     case 'saving':    return row.budget - row.spent;
     default: return 0;
   }
 }
 
-function renderSummaryTable(pctMonthElapsed, total){
+function renderSummaryTable(total){
   const tbody = document.getElementById('sum-tbody');
   tbody.innerHTML = '';
 
+  // Always sort by pctTarget desc as default; user can click other cols
   const sorted = [...tableData].sort((a,b)=>{
     const av = getRowVal(a, sortState.col);
     const bv = getRowVal(b, sortState.col);
@@ -329,27 +352,30 @@ function renderSummaryTable(pctMonthElapsed, total){
     const saving  = budget - spent;
     const pctT    = budget ? (spent/budget*100) : (spent>0?Infinity:0);
     const pctTStr = budget ? pctT.toFixed(2)+'%' : (spent>0?'∞':'—');
-    const pctColor= pctT>100?'var(--accent3)':pctT>pctMonthElapsed?'var(--accent4)':'var(--accent)';
+    const color   = pctColor(pctT);
+    const cls     = rowClass(pctT, budget>0, spent>0);
+    const isActive = activeFilter === cat;
 
     const tr = document.createElement('tr');
-    if(!budget && spent>0)          tr.classList.add('tr-none');
-    else if(pctT>100)               tr.classList.add('tr-over');
-    else if(pctT>pctMonthElapsed)   tr.classList.add('tr-warn');
-    else                            tr.classList.add('tr-ok');
+    tr.classList.add(cls);
+    if(isActive) tr.style.outline = '2px solid var(--accent2)';
+    tr.style.cursor = 'pointer';
+    tr.title = isActive ? 'Clic para quitar filtro' : 'Clic para filtrar por esta categoría';
 
     tr.innerHTML = `
-      <td><span class="badge-cat">${cat}</span></td>
+      <td><span class="badge-cat" style="${isActive?'background:rgba(124,108,250,.4);border-color:var(--accent2)':''}">${cat}</span></td>
       <td class="num">${fmt(spent)}</td>
       <td class="num" style="color:var(--muted)">${pctFmt(spent,total)}</td>
       <td class="num">${budget>0?fmt(budget):'—'}</td>
-      <td class="num" style="color:${pctColor}">${pctTStr}</td>
+      <td class="num" style="color:${color}">${pctTStr}</td>
       <td class="num ${saving>=0&&budget>0?'pos':'neg'}">${budget>0?fmt(saving):'—'}</td>
     `;
+    tr.addEventListener('click', ()=> applyFilter(cat));
     tbody.appendChild(tr);
   });
 }
 
-function initSortHeaders(pctMonthElapsed, total){
+function initSortHeaders(total){
   document.querySelectorAll('#sum-table thead th').forEach(th=>{
     th.addEventListener('click', ()=>{
       const col = th.dataset.col;
@@ -359,19 +385,73 @@ function initSortHeaders(pctMonthElapsed, total){
         sortState.col = col;
         sortState.dir = col==='cat'?'asc':'desc';
       }
-      // update header icons
       document.querySelectorAll('#sum-table thead th').forEach(h=>{
         h.classList.remove('sort-asc','sort-desc');
         h.querySelector('.sort-icon').textContent='↕';
       });
       th.classList.add(sortState.dir==='asc'?'sort-asc':'sort-desc');
       th.querySelector('.sort-icon').textContent = sortState.dir==='asc'?'↑':'↓';
-      renderSummaryTable(pctMonthElapsed, total);
+      renderSummaryTable(total);
     });
   });
-  // set initial icon
-  const initTh = document.querySelector('#sum-table thead th[data-col="spent"]');
+  // set initial icon on pctTarget
+  const initTh = document.querySelector('#sum-table thead th[data-col="pctTarget"]');
   if(initTh){ initTh.classList.add('sort-desc'); initTh.querySelector('.sort-icon').textContent='↓'; }
+}
+
+/* ── FILTER ENGINE ── */
+function applyFilter(cat){
+  activeFilter = (activeFilter === cat) ? null : cat;
+
+  // Update filter pill in header
+  const pill = document.getElementById('filter-pill');
+  if(activeFilter){
+    pill.textContent = '✕  '+activeFilter;
+    pill.style.display = 'inline-flex';
+  } else {
+    pill.style.display = 'none';
+  }
+
+  const txToUse = activeFilter ? allTxGlobal.filter(r=>r.categoria===activeFilter) : allTxGlobal;
+  const filtTotal = txToUse.reduce((s,r)=>s+r.monto,0);
+
+  // Re-render summary table (highlight only)
+  renderSummaryTable(totalGlobal);
+
+  // Update hero total
+  document.getElementById('hero-total').textContent = fmt(filtTotal);
+  document.getElementById('hero-sub').textContent   = txToUse.length+' transacciones'+(activeFilter?' · '+activeFilter:'  · '+Object.keys(
+    allTxGlobal.reduce((acc,r)=>{acc[r.categoria]=1;return acc;},{})
+  ).length+' categorías');
+
+  // Update line chart
+  const byDay={};
+  txToUse.forEach(r=>{ if(r.dmy) byDay[r.dmy.day]=(byDay[r.dmy.day]||0)+r.monto; });
+  const sortedDays=Object.entries(byDay).map(([d,v])=>({d:+d,v})).sort((a,b)=>a.d-b.d);
+  if(lineChartRef){
+    lineChartRef.data.labels           = sortedDays.map(x=>x.d);
+    lineChartRef.data.datasets[0].data = sortedDays.map(x=>x.v);
+    lineChartRef.data.datasets[1].data = sortedDays.map(x=>x.v);
+    lineChartRef.update();
+  }
+
+  // Update TX table
+  const txTbody = document.getElementById('tx-tbody');
+  txTbody.innerHTML='';
+  [...txToUse].sort((a,b)=>b.dmy.day-a.dmy.day).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
+      <td><span class="badge-cat">${r.categoria||'—'}</span></td>
+      <td>${r.detalle||'—'}</td>
+      <td class="r" style="font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+    `;
+    txTbody.appendChild(tr);
+  });
+  document.getElementById('tx-tfoot').innerHTML=`<tr>
+    <td colspan="3" style="color:var(--muted)">Total</td>
+    <td class="r" style="color:var(--accent)">${fmt(filtTotal)}</td>
+  </tr>`;
 }
 
 /* ── MAIN ── */
@@ -397,7 +477,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     });
 
     /* TRANSACTIONS — current month only */
-    const allTx = rawTx.map(r=>({
+    allTxGlobal = rawTx.map(r=>({
       fechaRaw:(r['Día']||r['Dia']||r['Fecha']||'').trim(),
       dmy: parseDMY((r['Día']||r['Dia']||r['Fecha']||'').trim()),
       detalle:(r['Concepto']||r['Detalle']||'').trim(),
@@ -405,22 +485,22 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
       monto:parseMonto(r['Monto'])
     })).filter(r=>r.monto>0 && r.dmy && r.dmy.month===curMonth && r.dmy.year===curYear);
 
-    if(!allTx.length){ showError('No hay transacciones para '+MONTHS_ES[curMonth-1]+' '+curYear+'.'); return; }
+    if(!allTxGlobal.length){ showError('No hay transacciones para '+MONTHS_ES[curMonth-1]+' '+curYear+'.'); return; }
 
-    const total = allTx.reduce((s,r)=>s+r.monto,0);
+    totalGlobal = allTxGlobal.reduce((s,r)=>s+r.monto,0);
     const byCat={};
-    allTx.forEach(r=>{ byCat[r.categoria]=(byCat[r.categoria]||0)+r.monto; });
+    allTxGlobal.forEach(r=>{ byCat[r.categoria]=(byCat[r.categoria]||0)+r.monto; });
     const byDay={};
-    allTx.forEach(r=>{ if(r.dmy) byDay[r.dmy.day]=(byDay[r.dmy.day]||0)+r.monto; });
+    allTxGlobal.forEach(r=>{ if(r.dmy) byDay[r.dmy.day]=(byDay[r.dmy.day]||0)+r.monto; });
     const sortedDays=Object.entries(byDay).map(([d,v])=>({d:+d,v})).sort((a,b)=>a.d-b.d);
     const budgetTotal=Object.values(budgetMap).reduce((s,v)=>s+v,0);
-    const pctSpent=budgetTotal?(total/budgetTotal*100):0;
+    const pctSpent=budgetTotal?(totalGlobal/budgetTotal*100):0;
 
     /* KPIs */
     const monthLabel=MONTHS_ES[curMonth-1]+' '+curYear;
     document.getElementById('hero-month').textContent   = monthLabel;
-    document.getElementById('hero-total').textContent   = fmt(total);
-    document.getElementById('hero-sub').textContent     = allTx.length+' transacciones · '+Object.keys(byCat).length+' categorías';
+    document.getElementById('hero-total').textContent   = fmt(totalGlobal);
+    document.getElementById('hero-sub').textContent     = allTxGlobal.length+' transacciones · '+Object.keys(byCat).length+' categorías';
     document.getElementById('kpi-day').textContent      = now.toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'America/Lima'});
     document.getElementById('kpi-pct').textContent      = pctMonthElapsed.toFixed(1)+' %';
     document.getElementById('kpi-pct-sub').textContent  = today+' de '+daysInMonth+' días';
@@ -430,38 +510,38 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     document.getElementById('line-month-label').textContent = monthLabel;
     document.getElementById('last-update').textContent  = 'Actualizado: '+now.toLocaleString('es-PE',{timeZone:'America/Lima'});
 
-    /* SUMMARY TABLE DATA */
+    /* SUMMARY TABLE */
     const allCats=[...new Set([...Object.keys(byCat),...Object.keys(budgetMap)])];
-    tableData = allCats.map(cat=>({ cat, spent:byCat[cat]||0, budget:budgetMap[cat]||0, total }));
-    renderSummaryTable(pctMonthElapsed, total);
-    initSortHeaders(pctMonthElapsed, total);
+    tableData = allCats.map(cat=>({ cat, spent:byCat[cat]||0, budget:budgetMap[cat]||0, total:totalGlobal }));
+    renderSummaryTable(totalGlobal);
+    initSortHeaders(totalGlobal);
 
     /* FOOTER */
-    const totalSaving=budgetTotal-total;
-    const totPctColor=pctSpent>100?'var(--accent3)':pctSpent>pctMonthElapsed?'var(--accent4)':'var(--accent)';
+    const totalSaving=budgetTotal-totalGlobal;
+    const totColor=pctColor(pctSpent);
     document.getElementById('sum-tfoot').innerHTML=`<tr>
       <td><strong>Total</strong></td>
-      <td class="num">${fmt(total)}</td>
+      <td class="num">${fmt(totalGlobal)}</td>
       <td class="num" style="color:var(--muted)">100%</td>
       <td class="num">${fmt(budgetTotal)}</td>
-      <td class="num" style="color:${totPctColor}">${pctSpent.toFixed(2)}%</td>
+      <td class="num" style="color:${totColor}">${pctSpent.toFixed(2)}%</td>
       <td class="num ${totalSaving>=0?'pos':'neg'}">${fmt(totalSaving)}</td>
     </tr>`;
 
-    /* BULLET CHART */
+    /* BULLET CHART — with spent amount label on right */
     const maxVal=Math.max(...allCats.map(c=>Math.max(byCat[c]||0,budgetMap[c]||0)),1);
     const bulletWrap=document.getElementById('bullet-wrap');
-    // sort bullet by expense desc
     [...allCats].sort((a,b)=>(byCat[b]||0)-(byCat[a]||0)).forEach(cat=>{
       const spent=byCat[cat]||0, budget=budgetMap[cat]||0;
       const budgetW=(budget/maxVal*100).toFixed(1);
       const spentW =(spent /maxVal*100).toFixed(1);
       const targetW=(budget/maxVal*100*pctMonthElapsed/100).toFixed(1);
       const pctT=budget?(spent/budget*100):null;
-      const color=pctT===null?'var(--muted)':pctT>100?'var(--accent3)':pctT>pctMonthElapsed?'var(--accent4)':'var(--accent)';
+      const color=pctT===null?'var(--muted)':pctColor(pctT);
       const pctLabel=pctT!==null?pctT.toFixed(0)+'%':'—';
       const row=document.createElement('div');
       row.className='bullet-row';
+      // grid: name | bar | spent-amount | pct
       row.innerHTML=`
         <div class="bullet-cat" title="${cat}">${cat}</div>
         <div class="bullet-track">
@@ -469,13 +549,14 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
           <div class="bullet-spent"  style="width:${spentW}%;background:${color}"></div>
           <div class="bullet-target" style="left:${targetW}%"></div>
         </div>
+        <div class="bullet-amt" style="color:var(--text)">${fmt(spent)}</div>
         <div class="bullet-pct" style="color:${color}">${pctLabel}</div>
       `;
       bulletWrap.appendChild(row);
     });
 
-    /* LINE CHART — with data labels */
-    new Chart(document.getElementById('chartLine'),{
+    /* LINE CHART */
+    lineChartRef = new Chart(document.getElementById('chartLine'),{
       type:'bar',
       data:{
         labels: sortedDays.map(x=>x.d),
@@ -484,7 +565,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
             type:'line',
             label:'Tendencia',
             data: sortedDays.map(x=>x.v),
-            borderColor:'rgba(0,229,160,.4)',
+            borderColor:'rgba(0,229,160,.35)',
             backgroundColor:'transparent',
             pointRadius:0,
             tension:.4, borderWidth:1.5,
@@ -513,8 +594,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
             callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)},
             backgroundColor:'#1e2433',titleColor:'#e8ecf4',
             bodyColor:'#00e5a0',borderColor:'#2d3650',borderWidth:1
-          },
-          // data labels via custom afterDatasetsDraw — use datalabels plugin alternative below
+          }
         },
         scales:{
           x:{
@@ -533,7 +613,6 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
         id:'barLabels',
         afterDatasetsDraw(chart){
           const {ctx, data, scales:{x,y}} = chart;
-          // only label the bar dataset (index 1)
           const meta = chart.getDatasetMeta(1);
           ctx.save();
           ctx.font = '600 9px Space Mono, monospace';
@@ -544,7 +623,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
             if(!val) return;
             const label = 'S/'+val.toLocaleString('es-PE',{minimumFractionDigits:0,maximumFractionDigits:0});
             const barTop = y.getPixelForValue(val);
-            ctx.fillStyle = 'rgba(232,236,244,.75)';
+            ctx.fillStyle = 'rgba(232,236,244,.78)';
             ctx.fillText(label, bar.x, barTop - 3);
           });
           ctx.restore();
@@ -552,10 +631,9 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
       }]
     });
 
-    /* TX TABLE — sorted by day descending */
-    const txSorted=[...allTx].sort((a,b)=>b.dmy.day-a.dmy.day);
+    /* TX TABLE */
     const txTbody=document.getElementById('tx-tbody');
-    txSorted.forEach(r=>{
+    [...allTxGlobal].sort((a,b)=>b.dmy.day-a.dmy.day).forEach(r=>{
       const tr=document.createElement('tr');
       tr.innerHTML=`
         <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
@@ -567,7 +645,7 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     });
     document.getElementById('tx-tfoot').innerHTML=`<tr>
       <td colspan="3" style="color:var(--muted)">Total</td>
-      <td class="r" style="color:var(--accent)">${fmt(total)}</td>
+      <td class="r" style="color:var(--accent)">${fmt(totalGlobal)}</td>
     </tr>`;
 
     hideLoader();
