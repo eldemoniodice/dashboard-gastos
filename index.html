@@ -100,7 +100,7 @@
 
     /* SORTABLE TABLE */
     .sum-wrap { overflow-x:visible; }
-    .sum-table { width:100%; min-width:500px; border-collapse:collapse; font-size:.72rem; }
+    .sum-table { width:100%; min-width:600px; border-collapse:collapse; font-size:.72rem; }
     @media(min-width:600px){ .sum-table{ font-size:.76rem; } }
     .sum-table thead th {
       padding:.42rem .6rem; font-size:.54rem; text-transform:uppercase;
@@ -226,7 +226,7 @@
     .tab-panel.active { display:block; }
 
     /* ── HISTORICAL VIEW ── */
-    .hist-heroes { display:grid; grid-template-columns:500px 500px; gap:1rem; margin-bottom:.7rem; }
+    .hist-heroes { display:grid; grid-template-columns:600px 600px; gap:1rem; margin-bottom:.7rem; }
     .hist-hero {
       border-radius:14px; padding:1.1rem 1.4rem;
       display:flex; flex-direction:column; gap:.3rem;
@@ -241,18 +241,18 @@
     .hist-hero .hs { font-size:.6rem; color:var(--muted); font-family:'Space Mono',monospace; }
 
     /* year summary + bar chart grid */
-    .hist-top-grid { display:grid; grid-template-columns:500px 500px; gap:1rem; }
-    .hist-top-grid > * { min-width:0; width:500px; }
+    .hist-top-grid { display:grid; grid-template-columns:600px 600px; gap:1rem; }
+    .hist-top-grid > * { min-width:0; width:600px; }
 
     /* bar chart — taller for horizontal layout */
     .hist-bar-wrap { position:relative; height:420px; }
     @media(min-width:600px){ .hist-bar-wrap{ height:480px; } }
 
     /* pivot tables */
-    .pivot-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .pivot-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
     .pivot-table { border-collapse:collapse; font-size:.65rem; white-space:nowrap; }
     @media(min-width:600px){ .pivot-table{ font-size:.7rem; } }
-    .pivot-table { table-layout:fixed; width:100%; }
+    .pivot-table { table-layout:auto; width:100%; max-width:100%; }
     .pivot-table th {
       padding:.26rem .2rem; font-size:.46rem; text-transform:uppercase; letter-spacing:.04em;
       color:var(--muted); border-bottom:1px solid var(--border);
@@ -407,7 +407,7 @@
   </div><!-- /tab-monthly -->
 
   <!-- ══ TAB 2: HISTORICAL ══ -->
-  <div id="tab-historical" class="tab-panel" style="min-width:1016px;">
+  <div id="tab-historical" class="tab-panel" style="min-width:1216px;">
 
     <!-- Hero cards: 2025 + 2026 -->
     <div class="hist-heroes fade-in">
@@ -443,7 +443,7 @@
     </div>
 
     <!-- Pivot: absolute values -->
-    <div class="card fade-in" style="transition-delay:.14s;margin-bottom:.7rem;width:1016px;">
+    <div class="card fade-in" style="transition-delay:.14s;margin-bottom:.7rem;width:1216px;">
       <div class="card-title">Expense by Month × Category (S/)</div>
       <div class="pivot-scroll">
         <table class="pivot-table" id="pivot-abs"></table>
@@ -451,7 +451,7 @@
     </div>
 
     <!-- Pivot: percentages -->
-    <div class="card fade-in" style="transition-delay:.2s;width:1016px;">
+    <div class="card fade-in" style="transition-delay:.2s;width:1216px;">
       <div class="card-title">Expense % by Month × Category</div>
       <div class="pivot-scroll">
         <table class="pivot-table" id="pivot-pct"></table>
@@ -1111,17 +1111,16 @@ function heatColor(val, max){
 }
 
 function addColGroup(tbl, months){
-  // Force uniform column widths via colgroup
   const cg = document.createElement('colgroup');
-  // Category col
+  // Category col — fixed
   const c0 = document.createElement('col');
-  c0.style.width='110px'; c0.style.minWidth='110px';
+  c0.style.width='110px';
   cg.appendChild(c0);
-  // Data cols: 2 per month + 2 for Total
+  // Data cols: equal width filling remaining space
   const totalCols = months.length * 2 + 2;
   for(let i=0;i<totalCols;i++){
     const c=document.createElement('col');
-    c.style.width='52px'; c.style.minWidth='52px'; c.style.maxWidth='52px';
+    c.style.width='44px';
     cg.appendChild(c);
   }
   tbl.appendChild(cg);
