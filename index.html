@@ -240,9 +240,14 @@
     .hist-hero.y2026 .hv { color:var(--accent); }
     .hist-hero .hs { font-size:.6rem; color:var(--muted); font-family:'Space Mono',monospace; }
 
-    /* bar chart */
-    .hist-bar-wrap { position:relative; height:340px; }
-    @media(min-width:768px){ .hist-bar-wrap{ height:420px; } }
+    /* year summary + bar chart grid */
+    .hist-top-grid { display:grid; grid-template-columns:1fr; gap:.7rem; }
+    @media(min-width:900px){ .hist-top-grid{ grid-template-columns:1fr 1fr; } }
+    .hist-top-grid > * { min-width:0; }
+
+    /* bar chart — taller for horizontal layout */
+    .hist-bar-wrap { position:relative; height:420px; }
+    @media(min-width:600px){ .hist-bar-wrap{ height:480px; } }
 
     /* pivot tables */
     .pivot-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -411,10 +416,23 @@
       </div>
     </div>
 
-    <!-- Bar chart: monthly comparison -->
-    <div class="card fade-in" style="transition-delay:.08s;margin-bottom:.7rem;">
-      <div class="card-title">Monthly Expense — 2025 vs 2026</div>
-      <div class="hist-bar-wrap"><canvas id="chartHistBar"></canvas></div>
+    <!-- Year summary table + Bar chart side by side on desktop -->
+    <div class="hist-top-grid fade-in" style="transition-delay:.06s;margin-bottom:.7rem;">
+
+      <!-- Summary by category: 2025 vs 2026 -->
+      <div class="card">
+        <div class="card-title">Summary by Category — Year Comparison</div>
+        <div class="pivot-scroll">
+          <table class="pivot-table" id="year-summary-table"></table>
+        </div>
+      </div>
+
+      <!-- Bar chart: monthly comparison (horizontal) -->
+      <div class="card">
+        <div class="card-title">Monthly Expense — 2025 vs 2026</div>
+        <div class="hist-bar-wrap"><canvas id="chartHistBar"></canvas></div>
+      </div>
+
     </div>
 
     <!-- Pivot: absolute values -->
@@ -958,28 +976,54 @@ function buildHistorical(){
   document.getElementById('hist-total-2026').textContent=fmt(totals[2026]);
   document.getElementById('hist-sub-2026').textContent=txCount[2026]+' transactions';
 
-  /* BAR CHART */
+  /* YEAR SUMMARY TABLE: Category | 2025 Expense | 2025 % | 2026 Expense | 2026 % */
+  buildYearSummary(allCatsHist, byYearCat, totals);
+
+  /* HORIZONTAL BAR CHART with data labels */
   const months=[1,2,3,4,5,6,7,8,9,10,11,12];
   new Chart(document.getElementById('chartHistBar'),{
     type:'bar',
     data:{
       labels:MONTH_NAMES,
       datasets:[
-        {label:'2025',data:months.map(m=>byYearMonth[2025][m]||0),backgroundColor:'rgba(124,108,250,.65)',borderRadius:5,borderSkipped:false},
-        {label:'2026',data:months.map(m=>byYearMonth[2026][m]||0),backgroundColor:'rgba(0,229,160,.65)',borderRadius:5,borderSkipped:false}
+        {label:'2025',data:months.map(m=>byYearMonth[2025][m]||0),backgroundColor:'rgba(124,108,250,.7)',borderRadius:4,borderSkipped:false},
+        {label:'2026',data:months.map(m=>byYearMonth[2026][m]||0),backgroundColor:'rgba(0,229,160,.7)',borderRadius:4,borderSkipped:false}
       ]
     },
     options:{
-      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{labels:{color:'#5a6380',font:{size:11,family:'Syne'},boxWidth:12,padding:14}},
-        tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)},backgroundColor:'#1e2433',titleColor:'#e8ecf4',bodyColor:'#00e5a0',borderColor:'#2d3650',borderWidth:1}
+        tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.x)},backgroundColor:'#1e2433',titleColor:'#e8ecf4',bodyColor:'#00e5a0',borderColor:'#2d3650',borderWidth:1}
       },
       scales:{
-        x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6380',font:{size:10,family:'Space Mono'}}},
-        y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6380',font:{size:9,family:'Space Mono'},callback:v=>'S/'+v.toLocaleString('es-PE')}}
+        x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6380',font:{size:9,family:'Space Mono'},callback:v=>'S/'+v.toLocaleString('es-PE')}},
+        y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#e8ecf4',font:{size:10,family:'Syne'}}}
       }
-    }
+    },
+    plugins:[{
+      id:'hbarLabels',
+      afterDatasetsDraw(chart){
+        const {ctx,data,scales:{x,y}}=chart;
+        ctx.save();
+        ctx.font='600 9px Space Mono,monospace';
+        ctx.textBaseline='middle';
+        data.datasets.forEach((ds,di)=>{
+          const meta=chart.getDatasetMeta(di);
+          meta.data.forEach((bar,i)=>{
+            const val=ds.data[i]; if(!val) return;
+            const label='S/'+val.toLocaleString('es-PE',{minimumFractionDigits:0,maximumFractionDigits:0});
+            const xPos=x.getPixelForValue(val);
+            // draw label just to the right of bar end
+            ctx.fillStyle='rgba(232,236,244,.85)';
+            ctx.textAlign='left';
+            ctx.fillText(label, xPos+4, bar.y);
+          });
+        });
+        ctx.restore();
+      }
+    }]
   });
 
   /* CATEGORIES sorted by combined total */
@@ -998,6 +1042,53 @@ function mkTh(text,cls,rowSpan,colSpan){
   th.textContent=text; if(cls) th.className=cls;
   if(rowSpan>1) th.rowSpan=rowSpan; if(colSpan>1) th.colSpan=colSpan;
   return th;
+}
+
+function buildYearSummary(cats, byYearCat, totals){
+  const tbl=document.getElementById('year-summary-table');
+  tbl.innerHTML='';
+
+  // Header row 1: Category | 2025 (colspan 2) | 2026 (colspan 2)
+  const thead=tbl.createTHead();
+  const hr1=thead.insertRow();
+  hr1.appendChild(mkTh('Category','',2,1));
+  hr1.appendChild(mkTh('2025','col-2025 yr-header',1,2));
+  hr1.appendChild(mkTh('2026','col-2026 yr-header',1,2));
+
+  // Header row 2: Expense | % | Expense | %
+  const hr2=thead.insertRow();
+  ['2025','2026'].forEach(y=>{
+    hr2.appendChild(mkTh('Expense',y==='2025'?'col-2025':'col-2026'));
+    hr2.appendChild(mkTh('%',y==='2025'?'col-2025':'col-2026'));
+  });
+
+  // Body
+  const tbody=tbl.createTBody();
+  cats.forEach(cat=>{
+    const tr=tbody.insertRow();
+    tr.insertCell().textContent=cat;
+    ['2025','2026'].forEach(y=>{
+      const v=byYearCat[y][cat]||0;
+      const pct=totals[y]?v/totals[y]*100:0;
+      const tdV=tr.insertCell(); tdV.textContent=v?fmt(v):'—';
+      tdV.className=y==='2025'?'col-2025':'col-2026';
+      if(!v) tdV.style.opacity='.3';
+      const tdP=tr.insertCell(); tdP.textContent=pct>0?pct.toFixed(2)+'%':'—';
+      tdP.className=y==='2025'?'col-2025':'col-2026';
+      tdP.style.opacity=pct>0?'1':'.3';
+    });
+  });
+
+  // Footer
+  const tfoot=tbl.createTFoot();
+  const fr=tfoot.insertRow();
+  fr.insertCell().textContent='Total';
+  ['2025','2026'].forEach(y=>{
+    const td1=fr.insertCell(); td1.textContent=fmt(totals[y]);
+    td1.className=y==='2025'?'col-2025':'col-2026';
+    const td2=fr.insertCell(); td2.textContent='100%';
+    td2.className=y==='2025'?'col-2025':'col-2026';
+  });
 }
 
 function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
