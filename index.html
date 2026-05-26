@@ -466,7 +466,22 @@ function showError(m){ const b=document.getElementById('error-box'); b.textConte
 function hideLoader(){ const l=document.getElementById('loader'); l.classList.add('hidden'); setTimeout(()=>l.remove(),600); }
 function revealCards(){ document.querySelectorAll('.fade-in').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*85)); }
 function parseMonto(s){ return parseFloat((s||'').replace(/[^0-9.,-]/g,'').replace(',','.')) || 0; }
-function parseDMY(s){ const p=(s||'').trim().split('/'); return p.length===3?{day:+p[0],month:+p[1],year:+p[2]}:null; }
+
+// Robust date parser — handles DD/MM/YYYY, D/M/YYYY, with any surrounding whitespace
+function parseDMY(s){
+  if(!s) return null;
+  const clean = s.trim().replace(/\s+/g,' ');
+  // Try DD/MM/YYYY or D/M/YYYY
+  const p = clean.split('/');
+  if(p.length===3){
+    const day=parseInt(p[0],10), month=parseInt(p[1],10), year=parseInt(p[2],10);
+    if(!isNaN(day)&&!isNaN(month)&&!isNaN(year)&&year>2000) return {day,month,year};
+  }
+  // Try extracting from datetime string like "31/12/2025 10:30:00"
+  const m = clean.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m) return {day:+m[1], month:+m[2], year:+m[3]};
+  return null;
+}
 
 function parseCSV(url, skipRows=1){
   return fetch(url).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
@@ -743,18 +758,33 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     });
 
     /* TRANSACTIONS — parse all, then split */
-    const allTxParsed = rawTx.map(r=>({
-      fechaRaw:(r['Día']||r['Dia']||r['Fecha']||'').trim(),
-      dmy: parseDMY((r['Día']||r['Dia']||r['Fecha']||'').trim()),
-      detalle:(r['Concepto']||r['Detalle']||'').trim(),
-      categoria:(r['Categoría']||r['Categoria']||'').trim(),
-      monto:parseMonto(r['Monto'])
-    })).filter(r=>r.monto>0 && r.dmy);
+    const allTxParsed = rawTx.map(r=>{
+      // Try dedicated date column first, then Fecha/Hora as fallback
+      const fechaRaw = (r['Día']||r['Dia']||r['Fecha']||'').trim();
+      const fechaHora = (r['Fecha/Hora']||r['Fecha Hora']||r['Timestamp']||'').trim();
+      // Use Día column, fallback to extracting date from Fecha/Hora
+      let dmy = parseDMY(fechaRaw);
+      if(!dmy && fechaHora) dmy = parseDMY(fechaHora);
+      return {
+        fechaRaw: fechaRaw || fechaHora,
+        dmy,
+        detalle:   (r['Concepto']||r['Detalle']||'').trim(),
+        categoria: (r['Categoría']||r['Categoria']||'').trim(),
+        monto:     parseMonto(r['Monto'])
+      };
+    }).filter(r=>r.monto>0 && r.dmy);
 
     // Current month only → monthly tab
     allTxGlobal = allTxParsed.filter(r=>r.dmy.month===curMonth && r.dmy.year===curYear);
     // All years → historical tab
     allTxAll = allTxParsed;
+
+    // DEBUG: log year distribution and column names
+    const yearDist = {};
+    allTxAll.forEach(r=>{ yearDist[r.dmy.year]=(yearDist[r.dmy.year]||0)+1; });
+    console.log('[FinanceOS] CSV columns:', rawTx.length>0 ? Object.keys(rawTx[0]) : 'empty');
+    console.log('[FinanceOS] Total parsed tx:', allTxAll.length, '| By year:', yearDist);
+    console.log('[FinanceOS] Sample raw rows:', rawTx.slice(0,2));
 
     if(!allTxGlobal.length){ showError('No transactions found for '+MONTHS_ES[curMonth-1]+' '+curYear+'.'); return; }
 
@@ -962,21 +992,26 @@ function buildHistorical(){
 
   allTxAll.forEach(r=>{
     if(!r.dmy) return;
-    const y=r.dmy.year, m=r.dmy.month;
-    if(y!==2025&&y!==2026) return;
-    totals[y]+=r.monto; txCount[y]+=1;
-    byYearMonth[y][m]=(byYearMonth[y][m]||0)+r.monto;
-    byYearCat[y][r.categoria]=(byYearCat[y][r.categoria]||0)+r.monto;
-    if(!byYearMonthCat[y][m]) byYearMonthCat[y][m]={};
-    byYearMonthCat[y][m][r.categoria]=(byYearMonthCat[y][m][r.categoria]||0)+r.monto;
+    const y = parseInt(r.dmy.year, 10);
+    const m = parseInt(r.dmy.month, 10);
+    if(y!==2025 && y!==2026) return;
+    totals[y]  += r.monto; txCount[y] += 1;
+    byYearMonth[y][m]   = (byYearMonth[y][m]||0) + r.monto;
+    byYearCat[y][r.categoria]   = (byYearCat[y][r.categoria]||0) + r.monto;
+    if(!byYearMonthCat[y][m]) byYearMonthCat[y][m] = {};
+    byYearMonthCat[y][m][r.categoria] = (byYearMonthCat[y][m][r.categoria]||0) + r.monto;
   });
+
+  /* CATEGORIES sorted by combined total */
+  const allCatsHist=[...new Set([...Object.keys(byYearCat[2025]),...Object.keys(byYearCat[2026])])];
+  allCatsHist.sort((a,b)=>((byYearCat[2025][b]||0)+(byYearCat[2026][b]||0))-((byYearCat[2025][a]||0)+(byYearCat[2026][a]||0)));
 
   document.getElementById('hist-total-2025').textContent=fmt(totals[2025]);
   document.getElementById('hist-sub-2025').textContent=txCount[2025]+' transactions';
   document.getElementById('hist-total-2026').textContent=fmt(totals[2026]);
   document.getElementById('hist-sub-2026').textContent=txCount[2026]+' transactions';
 
-  /* YEAR SUMMARY TABLE: Category | 2025 Expense | 2025 % | 2026 Expense | 2026 % */
+  /* YEAR SUMMARY TABLE */
   buildYearSummary(allCatsHist, byYearCat, totals);
 
   /* HORIZONTAL BAR CHART with data labels */
@@ -1025,10 +1060,6 @@ function buildHistorical(){
       }
     }]
   });
-
-  /* CATEGORIES sorted by combined total */
-  const allCatsHist=[...new Set([...Object.keys(byYearCat[2025]),...Object.keys(byYearCat[2026])])];
-  allCatsHist.sort((a,b)=>((byYearCat[2025][b]||0)+(byYearCat[2026][b]||0))-((byYearCat[2025][a]||0)+(byYearCat[2026][a]||0)));
 
   buildPivotAbs(allCatsHist,months,byYearMonthCat,byYearMonth);
   buildPivotPct(allCatsHist,months,byYearMonthCat,byYearMonth);
