@@ -416,8 +416,14 @@
       </div>
     </div>
 
-    <!-- Year summary table + Bar chart side by side on desktop -->
+    <!-- Bar chart first, then summary table -->
     <div class="hist-top-grid fade-in" style="transition-delay:.06s;margin-bottom:.7rem;">
+
+      <!-- Bar chart: monthly comparison (horizontal) -->
+      <div class="card">
+        <div class="card-title">Monthly Expense — 2025 vs 2026</div>
+        <div class="hist-bar-wrap"><canvas id="chartHistBar"></canvas></div>
+      </div>
 
       <!-- Summary by category: 2025 vs 2026 -->
       <div class="card">
@@ -425,12 +431,6 @@
         <div class="pivot-scroll">
           <table class="pivot-table" id="year-summary-table"></table>
         </div>
-      </div>
-
-      <!-- Bar chart: monthly comparison (horizontal) -->
-      <div class="card">
-        <div class="card-title">Monthly Expense — 2025 vs 2026</div>
-        <div class="hist-bar-wrap"><canvas id="chartHistBar"></canvas></div>
       </div>
 
     </div>
@@ -1028,7 +1028,7 @@ function buildHistorical(){
 
   /* CATEGORIES sorted by combined total */
   const allCatsHist=[...new Set([...Object.keys(byYearCat[2025]),...Object.keys(byYearCat[2026])])];
-  allCatsHist.sort((a,b)=>((byYearCat[2025][b]||0)+(byYearCat[2026][b]||0))-((byYearCat[2025][a]||0)+(byYearCat[2026][a]||0)));
+  allCatsHist.sort((a,b)=>a.localeCompare(b));
 
   buildPivotAbs(allCatsHist,months,byYearMonthCat,byYearMonth);
   buildPivotPct(allCatsHist,months,byYearMonthCat,byYearMonth);
@@ -1091,8 +1091,30 @@ function buildYearSummary(cats, byYearCat, totals){
   });
 }
 
+function heatColor(val, max){
+  if(!val||!max) return '';
+  const t = Math.min(val/max, 1);
+  // green(0) → yellow(0.5) → red(1)
+  const r = Math.round(t < 0.5 ? 2*t*220 : 220);
+  const g = Math.round(t < 0.5 ? 180 : (1-t)*2*180);
+  const b = 40;
+  return `rgba(${r},${g},${b},${0.15 + t*0.65})`;
+}
+
 function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
   const tbl=document.getElementById('pivot-abs'); tbl.innerHTML='';
+
+  // Compute global max for heatmap scale
+  let globalMax = 0;
+  cats.forEach(cat=>{
+    months.forEach(m=>{
+      ['2025','2026'].forEach(y=>{
+        const v=(byYearMonthCat[y][m]||{})[cat]||0;
+        if(v>globalMax) globalMax=v;
+      });
+    });
+  });
+
   const thead=tbl.createTHead();
   const hr1=thead.insertRow();
   hr1.appendChild(mkTh('Category','',2,1));
@@ -1109,15 +1131,18 @@ function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
     months.forEach(m=>{
       ['2025','2026'].forEach(y=>{
         const v=(byYearMonthCat[y][m]||{})[cat]||0;
-        const td=tr.insertCell(); td.textContent=v?fmt(v):'—';
-        td.className=y==='2025'?'col-2025':'col-2026';
-        if(!v) td.style.opacity='.3';
+        const td=tr.insertCell();
+        td.textContent=v?fmt(v):'—';
+        td.style.color='var(--text)';
+        if(v){ td.style.background=heatColor(v,globalMax); td.style.fontWeight='500'; }
+        else { td.style.opacity='.25'; }
       });
     });
     ['2025','2026'].forEach(y=>{
       const v=Object.values(byYearMonthCat[y]).reduce((s,mc)=>s+(mc[cat]||0),0);
       const td=tr.insertCell(); td.textContent=v?fmt(v):'—';
-      td.className=y==='2025'?'col-2025':'col-2026'; td.style.fontWeight='600';
+      td.style.color='var(--text)'; td.style.fontWeight='700';
+      if(v) td.style.background=heatColor(v,globalMax*months.length*0.3);
     });
   });
   const tfoot=tbl.createTFoot(); const fr=tfoot.insertRow();
@@ -1156,20 +1181,35 @@ function buildPivotPct(cats,months,byYearMonthCat,byYearMonth){
     });});
   });
 
+  // Global max pct for heatmap
+  let globalMaxPct = 0;
+  cats.forEach(cat=>{
+    months.forEach(m=>{['2025','2026'].forEach(y=>{
+      const mt=byYearMonth[y][m]||0;
+      const v=(byYearMonthCat[y][m]||{})[cat]||0;
+      const p=mt?v/mt*100:0;
+      if(p>globalMaxPct) globalMaxPct=p;
+    });});
+  });
+
   const tbody=tbl.createTBody();
   cats.forEach(cat=>{
     const tr=tbody.insertRow();
     tr.insertCell().textContent=cat;
     months.forEach(m=>{['2025','2026'].forEach(y=>{
-      const key=`${m}_${y}`;
       const mt=byYearMonth[y][m]||0;
       const v=(byYearMonthCat[y][m]||{})[cat]||0;
       const p=mt?v/mt*100:0;
       const td=tr.insertCell();
-      td.textContent=p>0?p.toFixed(2)+'%':'0.00%';
-      const isMax=p>0&&Math.abs(p-colMax[key])<0.001;
-      if(isMax){ td.className='pct-max'; }
-      else { td.style.color=y==='2025'?'rgba(124,108,250,.6)':'rgba(0,229,160,.5)'; }
+      td.textContent=p>0?p.toFixed(2)+'%':'—';
+      if(p>0){
+        td.style.background=heatColor(p,globalMaxPct);
+        td.style.color='var(--text)';
+        td.style.fontWeight='500';
+      } else {
+        td.style.opacity='.25';
+        td.style.color='var(--muted)';
+      }
     });});
   });
 
