@@ -55,7 +55,7 @@
     .fade-in.visible { opacity:1; transform:none; }
 
     /* CARD */
-    .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1rem 1.1rem; box-shadow:var(--glow); }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1rem 1.1rem; box-shadow:var(--glow); overflow:visible; }
     @media(min-width:600px){ .card{ padding:1.2rem 1.3rem; } }
     .card-title { font-size:.58rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); margin-bottom:.8rem; display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
     .card-title::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0; }
@@ -99,7 +99,7 @@
     .mid-row > * { min-width:0; width:100%; }
 
     /* SORTABLE TABLE */
-    .sum-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .sum-wrap { overflow-x:visible; }
     .sum-table { width:100%; min-width:600px; border-collapse:collapse; font-size:.72rem; }
     @media(min-width:600px){ .sum-table{ font-size:.76rem; } }
     .sum-table thead th {
