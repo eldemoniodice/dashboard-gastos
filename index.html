@@ -100,7 +100,7 @@
 
     /* SORTABLE TABLE */
     .sum-wrap { overflow-x:visible; }
-    .sum-table { width:100%; min-width:530px; border-collapse:collapse; font-size:.72rem; }
+    .sum-table { width:100%; min-width:510px; border-collapse:collapse; font-size:.72rem; }
     @media(min-width:600px){ .sum-table{ font-size:.76rem; } }
     .sum-table thead th {
       padding:.42rem .6rem; font-size:.54rem; text-transform:uppercase;
@@ -226,7 +226,7 @@
     .tab-panel.active { display:block; }
 
     /* ── HISTORICAL VIEW ── */
-    .hist-heroes { display:grid; grid-template-columns:530px 530px; gap:1rem; margin-bottom:.7rem; }
+    .hist-heroes { display:grid; grid-template-columns:510px 510px; gap:1rem; margin-bottom:.7rem; }
     .hist-hero {
       border-radius:14px; padding:1.1rem 1.4rem;
       display:flex; flex-direction:column; gap:.3rem;
@@ -241,8 +241,8 @@
     .hist-hero .hs { font-size:.6rem; color:var(--muted); font-family:'Space Mono',monospace; }
 
     /* year summary + bar chart grid */
-    .hist-top-grid { display:grid; grid-template-columns:530px 530px; gap:1rem; }
-    .hist-top-grid > * { min-width:0; width:530px; }
+    .hist-top-grid { display:grid; grid-template-columns:510px 510px; gap:1rem; }
+    .hist-top-grid > * { min-width:0; width:510px; }
 
     /* bar chart — taller for horizontal layout */
     .hist-bar-wrap { position:relative; height:420px; }
@@ -407,7 +407,7 @@
   </div><!-- /tab-monthly -->
 
   <!-- ══ TAB 2: HISTORICAL ══ -->
-  <div id="tab-historical" class="tab-panel" style="min-width:1076px;">
+  <div id="tab-historical" class="tab-panel" style="min-width:1036px;">
 
     <!-- Hero cards: 2025 + 2026 -->
     <div class="hist-heroes fade-in">
@@ -443,7 +443,7 @@
     </div>
 
     <!-- Pivot: absolute values -->
-    <div class="card fade-in" style="transition-delay:.14s;margin-bottom:.7rem;width:1076px;">
+    <div class="card fade-in" style="transition-delay:.14s;margin-bottom:.7rem;width:1036px;">
       <div class="card-title">Expense by Month × Category (S/)</div>
       <div class="pivot-scroll">
         <table class="pivot-table" id="pivot-abs"></table>
@@ -451,7 +451,7 @@
     </div>
 
     <!-- Pivot: percentages -->
-    <div class="card fade-in" style="transition-delay:.2s;width:1076px;">
+    <div class="card fade-in" style="transition-delay:.2s;width:1036px;">
       <div class="card-title">Expense % by Month × Category</div>
       <div class="pivot-scroll">
         <table class="pivot-table" id="pivot-pct"></table>
