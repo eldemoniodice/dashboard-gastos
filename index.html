@@ -254,29 +254,31 @@
     .pivot-table { border-collapse:collapse; font-size:.65rem; white-space:nowrap; }
     @media(min-width:600px){ .pivot-table{ font-size:.7rem; } }
     .pivot-table th {
-      padding:.38rem .6rem; font-size:.54rem; text-transform:uppercase; letter-spacing:.07em;
+      padding:.28rem .35rem; font-size:.48rem; text-transform:uppercase; letter-spacing:.05em;
       color:var(--muted); border-bottom:1px solid var(--border);
       font-family:'Space Mono',monospace; text-align:center; white-space:nowrap;
       background:var(--surface); position:sticky; top:0; z-index:2;
     }
-    .pivot-table th:first-child { text-align:left; position:sticky; left:0; z-index:3; }
-    .pivot-table th.yr-header { color:var(--text); font-size:.58rem; }
+    .pivot-table th:first-child { text-align:left; position:sticky; left:0; z-index:3; min-width:110px; }
+    .pivot-table th.yr-header { color:var(--text); font-size:.52rem; }
     .pivot-table td {
-      padding:.32rem .6rem; border-bottom:1px solid rgba(30,36,51,.4);
-      text-align:right; font-family:'Space Mono',monospace; color:var(--muted);
+      padding:.25rem .3rem; border-bottom:1px solid rgba(30,36,51,.4);
+      text-align:center; font-family:'Space Mono',monospace; color:var(--muted);
+      font-size:.58rem; white-space:nowrap;
     }
     .pivot-table td:first-child {
       text-align:left; color:var(--text); font-family:'Syne',sans-serif;
       position:sticky; left:0; background:var(--surface); z-index:1;
-      font-size:.7rem;
+      font-size:.66rem; padding-left:.5rem; min-width:110px;
     }
     .pivot-table tr:hover td { background:rgba(255,255,255,.025); }
     .pivot-table tr:hover td:first-child { background:var(--surface); filter:brightness(1.2); }
     .pivot-table tfoot td {
       border-top:2px solid var(--border); font-weight:700; color:var(--text);
-      background:var(--surface);
+      background:var(--surface); text-align:center; font-size:.58rem;
+      padding:.28rem .3rem;
     }
-    .pivot-table tfoot td:first-child { position:sticky; left:0; z-index:1; }
+    .pivot-table tfoot td:first-child { position:sticky; left:0; z-index:1; text-align:left; padding-left:.5rem; }
     .pivot-table .col-2025 { color:var(--accent2); }
     .pivot-table .col-2026 { color:var(--accent); }
     /* pct highlight: max of column */
@@ -1125,25 +1127,48 @@ function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
   [...months,...['T']].forEach(()=>{
     ['2025','2026'].forEach(y=>{hr2.appendChild(mkTh(y,y==='2025'?'col-2025':'col-2026'));});
   });
+  // Per-column max for correct heatmap scaling
+  const colMaxAbs={};
+  cats.forEach(cat=>{
+    months.forEach(m=>{
+      ['2025','2026'].forEach(y=>{
+        const key=m+'_'+y;
+        const v=(byYearMonthCat[y][m]||{})[cat]||0;
+        if(v>(colMaxAbs[key]||0)) colMaxAbs[key]=v;
+      });
+    });
+  });
+
   const tbody=tbl.createTBody();
   cats.forEach(cat=>{
     const tr=tbody.insertRow();
-    tr.insertCell().textContent=cat;
+    const td0=tr.insertCell(); td0.textContent=cat;
     months.forEach(m=>{
       ['2025','2026'].forEach(y=>{
+        const key=m+'_'+y;
         const v=(byYearMonthCat[y][m]||{})[cat]||0;
         const td=tr.insertCell();
         td.textContent=v?fmt(v):'—';
-        td.style.color='var(--text)';
-        if(v){ td.style.background=heatColor(v,globalMax); td.style.fontWeight='500'; }
-        else { td.style.opacity='.25'; }
+        td.style.textAlign='center';
+        if(v){
+          td.style.background=heatColor(v,colMaxAbs[key]||1);
+          td.style.color='var(--text)';
+          td.style.fontWeight='500';
+        } else {
+          td.style.opacity='.25';
+          td.style.color='var(--muted)';
+        }
       });
     });
+    // Total cols — per-year max across all months
     ['2025','2026'].forEach(y=>{
       const v=Object.values(byYearMonthCat[y]).reduce((s,mc)=>s+(mc[cat]||0),0);
-      const td=tr.insertCell(); td.textContent=v?fmt(v):'—';
-      td.style.color='var(--text)'; td.style.fontWeight='700';
-      if(v) td.style.background=heatColor(v,globalMax*months.length*0.3);
+      const maxForYear=Math.max(...months.map(m=>(byYearMonthCat[y][m]||{})[cat]||0))*months.length*0.25;
+      const td=tr.insertCell();
+      td.textContent=v?fmt(v):'—';
+      td.style.textAlign='center';
+      td.style.fontWeight='700';
+      if(v){ td.style.background=heatColor(v,maxForYear||1); td.style.color='var(--text)'; }
     });
   });
   const tfoot=tbl.createTFoot(); const fr=tfoot.insertRow();
@@ -1151,13 +1176,13 @@ function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
   months.forEach(m=>{
     ['2025','2026'].forEach(y=>{
       const td=fr.insertCell(); const v=byYearMonth[y][m]||0;
-      td.textContent=v?fmt(v):'—'; td.className=y==='2025'?'col-2025':'col-2026';
+      td.textContent=v?fmt(v):'—'; td.className=y==='2025'?'col-2025':'col-2026'; td.style.textAlign='center';
     });
   });
   ['2025','2026'].forEach(y=>{
     const td=fr.insertCell();
     td.textContent=fmt(Object.values(byYearMonth[y]).reduce((s,x)=>s+x,0));
-    td.className=y==='2025'?'col-2025':'col-2026';
+    td.className=y==='2025'?'col-2025':'col-2026'; td.style.textAlign='center';
   });
 }
 
@@ -1182,29 +1207,32 @@ function buildPivotPct(cats,months,byYearMonthCat,byYearMonth){
     });});
   });
 
-  // Global max pct for heatmap
-  let globalMaxPct = 0;
+  // Per-column max for pct heatmap
+  const colMaxPct={};
   cats.forEach(cat=>{
     months.forEach(m=>{['2025','2026'].forEach(y=>{
+      const key=m+'_'+y;
       const mt=byYearMonth[y][m]||0;
       const v=(byYearMonthCat[y][m]||{})[cat]||0;
       const p=mt?v/mt*100:0;
-      if(p>globalMaxPct) globalMaxPct=p;
+      if(p>(colMaxPct[key]||0)) colMaxPct[key]=p;
     });});
   });
 
   const tbody=tbl.createTBody();
   cats.forEach(cat=>{
     const tr=tbody.insertRow();
-    tr.insertCell().textContent=cat;
+    const td0=tr.insertCell(); td0.textContent=cat;
     months.forEach(m=>{['2025','2026'].forEach(y=>{
+      const key=m+'_'+y;
       const mt=byYearMonth[y][m]||0;
       const v=(byYearMonthCat[y][m]||{})[cat]||0;
       const p=mt?v/mt*100:0;
       const td=tr.insertCell();
       td.textContent=p>0?p.toFixed(2)+'%':'—';
+      td.style.textAlign='center';
       if(p>0){
-        td.style.background=heatColor(p,globalMaxPct);
+        td.style.background=heatColor(p,colMaxPct[key]||1);
         td.style.color='var(--text)';
         td.style.fontWeight='500';
       } else {
