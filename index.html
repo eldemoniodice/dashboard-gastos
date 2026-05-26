@@ -27,8 +27,11 @@
       content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.28;
       background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
     }
-    .wrapper { position:relative; z-index:1; max-width:1500px; margin:0 auto; padding:1.2rem 1rem; }
+    .wrapper { position:relative; z-index:1; max-width:1500px; margin:0 auto; padding:1.2rem 1rem; width:100%; }
     @media(min-width:600px){ .wrapper{ padding:1.8rem 1.5rem; } }
+
+    /* All direct children of wrapper fill full width */
+    .wrapper > * { width:100%; min-width:0; box-sizing:border-box; }
 
     /* LOADER */
     #loader { position:fixed; inset:0; background:var(--bg); z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; transition:opacity .5s; }
@@ -91,8 +94,9 @@
 
     /* ── ROW 2: Summary table + Bullet chart ──
        Desktop: side-by-side. Tablet/mobile: stacked. */
-    .mid-row { display:grid; grid-template-columns:1fr; gap:.7rem; margin-bottom:.7rem; }
+    .mid-row { display:grid; grid-template-columns:1fr; gap:.7rem; margin-bottom:.7rem; width:100%; min-width:0; }
     @media(min-width:1050px){ .mid-row{ grid-template-columns:1fr 1fr; gap:.85rem; margin-bottom:.85rem; } }
+    .mid-row > * { min-width:0; width:100%; }
 
     /* SORTABLE TABLE */
     .sum-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -127,33 +131,37 @@
     .badge-cat.active { color:var(--accent2); font-weight:600; }
 
     /* BULLET CHART — no scroll, auto height, responsive columns */
-    .bullet-wrap { display:flex; flex-direction:column; }
+    .bullet-wrap { display:flex; flex-direction:column; width:100%; min-width:0; }
     .bullet-row {
       display:grid;
-      grid-template-columns:100px 1fr 70px 36px;
-      align-items:center; gap:.5rem; padding:.4rem 0;
+      grid-template-columns:90px 1fr 68px 34px;
+      align-items:center; gap:.4rem; padding:.4rem 0;
       border-bottom:1px solid rgba(30,36,51,.32);
+      min-width:0;
     }
     @media(min-width:500px){
       .bullet-row { grid-template-columns:120px 1fr 85px 42px; gap:.6rem; }
     }
     .bullet-row:last-child { border-bottom:none; }
-    .bullet-cat { font-size:.68rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .bullet-track { position:relative; height:16px; background:rgba(255,255,255,.05); border-radius:4px; overflow:hidden; }
+    .bullet-cat { font-size:.65rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+    .bullet-track { position:relative; height:16px; background:rgba(255,255,255,.05); border-radius:4px; overflow:hidden; min-width:0; }
     .bullet-budget { position:absolute; top:0; left:0; height:100%; background:rgba(255,255,255,.08); border-radius:4px; }
     .bullet-spent  { position:absolute; top:3px; left:0; height:10px; border-radius:3px; transition:width .7s ease; }
     .bullet-target { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,.38); border-radius:1px; }
-    .bullet-amt { font-size:.62rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; color:var(--text); overflow:hidden; text-overflow:ellipsis; }
-    .bullet-pct { font-size:.62rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; }
+    .bullet-amt { font-size:.6rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; color:var(--text); overflow:hidden; text-overflow:ellipsis; min-width:0; }
+    .bullet-pct { font-size:.6rem; font-family:'Space Mono',monospace; text-align:right; white-space:nowrap; min-width:0; }
 
     /* ── ROW 3: Line chart ── */
     .timeline-card { margin-bottom:.7rem; }
     @media(min-width:600px){ .timeline-card{ margin-bottom:.85rem; } }
-    .line-wrap { position:relative; height:180px; }
-    @media(min-width:600px){ .line-wrap{ height:200px; } }
+    .line-wrap { position:relative; height:260px; }
+    @media(min-width:480px){ .line-wrap{ height:320px; } }
+    @media(min-width:768px){ .line-wrap{ height:380px; } }
+    @media(min-width:1050px){ .line-wrap{ height:420px; } }
 
     /* ── ROW 4: TX table ── */
-    .tx-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; max-height:420px; overflow-y:auto; }
+    .tx-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; overflow-y:auto; }
+    @media(min-width:1050px){ .tx-wrap{ max-height:520px; } }
     .tx-wrap::-webkit-scrollbar { width:3px; }
     .tx-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
     .tx-table { width:100%; border-collapse:collapse; font-size:.68rem; table-layout:fixed; }
