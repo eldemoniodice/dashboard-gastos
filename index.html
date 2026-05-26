@@ -277,6 +277,7 @@
     /* pct highlight: max of column */
     .pct-max { background:rgba(255,107,107,.25)!important; color:var(--accent3)!important; font-weight:700; border-radius:3px; }
     .pct-val { color:var(--muted); }
+  </style>
 </head>
 <body>
 
@@ -476,6 +477,7 @@ let sortState   = { col:'pctTarget', dir:'desc' };
 let tableData   = [];
 let activeFilter = null;   // null = sin filtro, string = categoría activa
 let allTxGlobal  = [];     // referencia global a transactions del mes
+let allTxAll     = [];     // todas las transacciones (todos los años)
 let lineChartRef = null;   // referencia al Chart.js of la línea
 let totalGlobal  = 0;
 
@@ -722,14 +724,19 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
       if(cat && cat.toLowerCase()!=='categoría' && cat.toLowerCase()!=='categoria') budgetMap[cat]=bud;
     });
 
-    /* TRANSACTIONS — current month only */
-    allTxGlobal = rawTx.map(r=>({
+    /* TRANSACTIONS — parse all, then split */
+    const allTxParsed = rawTx.map(r=>({
       fechaRaw:(r['Día']||r['Dia']||r['Fecha']||'').trim(),
       dmy: parseDMY((r['Día']||r['Dia']||r['Fecha']||'').trim()),
       detalle:(r['Concepto']||r['Detalle']||'').trim(),
       categoria:(r['Categoría']||r['Categoria']||'').trim(),
       monto:parseMonto(r['Monto'])
-    })).filter(r=>r.monto>0 && r.dmy && r.dmy.month===curMonth && r.dmy.year===curYear);
+    })).filter(r=>r.monto>0 && r.dmy);
+
+    // Current month only → monthly tab
+    allTxGlobal = allTxParsed.filter(r=>r.dmy.month===curMonth && r.dmy.year===curYear);
+    // All years → historical tab
+    allTxAll = allTxParsed;
 
     if(!allTxGlobal.length){ showError('No transactions found for '+MONTHS_ES[curMonth-1]+' '+curYear+'.'); return; }
 
@@ -920,7 +927,7 @@ function switchTab(tab, btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='historical' && !histBuilt && allTxGlobal.length){
+  if(tab==='historical' && !histBuilt && allTxAll.length){
     buildHistorical();
     histBuilt = true;
   }
@@ -935,7 +942,7 @@ function buildHistorical(){
   const byYearCat={2025:{},2026:{}};
   const byYearMonthCat={2025:{},2026:{}};
 
-  allTxGlobal.forEach(r=>{
+  allTxAll.forEach(r=>{
     if(!r.dmy) return;
     const y=r.dmy.year, m=r.dmy.month;
     if(y!==2025&&y!==2026) return;
