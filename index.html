@@ -253,33 +253,29 @@
     .pivot-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
     .pivot-table { border-collapse:collapse; font-size:.65rem; white-space:nowrap; }
     @media(min-width:600px){ .pivot-table{ font-size:.7rem; } }
-    .pivot-table { table-layout:fixed; }
+    .pivot-table { table-layout:fixed; width:max-content; }
     .pivot-table th {
       padding:.26rem .2rem; font-size:.46rem; text-transform:uppercase; letter-spacing:.04em;
       color:var(--muted); border-bottom:1px solid var(--border);
       font-family:'Space Mono',monospace; text-align:center; white-space:nowrap;
       background:var(--surface); position:sticky; top:0; z-index:2;
-      width:52px; min-width:52px; max-width:52px; overflow:hidden;
+      overflow:hidden;
     }
     .pivot-table th:first-child {
       text-align:left; position:sticky; left:0; z-index:3;
-      width:110px; min-width:110px; max-width:130px;
     }
     .pivot-table th.yr-header {
       color:var(--text); font-size:.5rem; text-align:center;
-      width:104px; min-width:104px;
     }
     .pivot-table td {
       padding:.24rem .2rem; border-bottom:1px solid rgba(30,36,51,.4);
       text-align:center; font-family:'Space Mono',monospace; color:var(--muted);
-      font-size:.56rem; white-space:nowrap;
-      width:52px; min-width:52px; max-width:52px; overflow:hidden;
+      font-size:.56rem; white-space:nowrap; overflow:hidden;
     }
     .pivot-table td:first-child {
       text-align:left; color:var(--text); font-family:'Syne',sans-serif;
       position:sticky; left:0; background:var(--surface); z-index:1;
       font-size:.65rem; padding-left:.5rem;
-      width:110px; min-width:110px; max-width:130px;
     }
     .pivot-table tr:hover td { background:rgba(255,255,255,.025); }
     .pivot-table tr:hover td:first-child { background:var(--surface); filter:brightness(1.2); }
@@ -1115,8 +1111,26 @@ function heatColor(val, max){
   return `rgba(${r},${g},${b},${0.15 + t*0.65})`;
 }
 
+function addColGroup(tbl, months){
+  // Force uniform column widths via colgroup
+  const cg = document.createElement('colgroup');
+  // Category col
+  const c0 = document.createElement('col');
+  c0.style.width='110px'; c0.style.minWidth='110px';
+  cg.appendChild(c0);
+  // Data cols: 2 per month + 2 for Total
+  const totalCols = months.length * 2 + 2;
+  for(let i=0;i<totalCols;i++){
+    const c=document.createElement('col');
+    c.style.width='52px'; c.style.minWidth='52px'; c.style.maxWidth='52px';
+    cg.appendChild(c);
+  }
+  tbl.appendChild(cg);
+}
+
 function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
   const tbl=document.getElementById('pivot-abs'); tbl.innerHTML='';
+  addColGroup(tbl, months);
 
   // Compute global max for heatmap scale
   let globalMax = 0;
@@ -1199,6 +1213,7 @@ function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
 
 function buildPivotPct(cats,months,byYearMonthCat,byYearMonth){
   const tbl=document.getElementById('pivot-pct'); tbl.innerHTML='';
+  addColGroup(tbl, months);
   const thead=tbl.createTHead();
   const hr1=thead.insertRow();
   hr1.appendChild(mkTh('Category','',2,1));
