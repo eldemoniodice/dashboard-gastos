@@ -226,7 +226,7 @@
     .tab-panel.active { display:block; }
 
     /* ── HISTORICAL VIEW ── */
-    .hist-heroes { display:grid; grid-template-columns:1000px 1000px; gap:1rem; margin-bottom:.7rem; }
+    .hist-heroes { display:grid; grid-template-columns:600px 600px; gap:1rem; margin-bottom:.7rem; }
     .hist-hero {
       border-radius:14px; padding:1.1rem 1.4rem;
       display:flex; flex-direction:column; gap:.3rem;
@@ -241,8 +241,8 @@
     .hist-hero .hs { font-size:.6rem; color:var(--muted); font-family:'Space Mono',monospace; }
 
     /* year summary + bar chart grid */
-    .hist-top-grid { display:grid; grid-template-columns:1000px 1000px; gap:1rem; }
-    .hist-top-grid > * { min-width:0; width:1000px; }
+    .hist-top-grid { display:grid; grid-template-columns:600px 600px; gap:1rem; }
+    .hist-top-grid > * { min-width:0; width:600px; }
 
     /* bar chart — taller for horizontal layout */
     .hist-bar-wrap { position:relative; height:420px; }
@@ -407,7 +407,7 @@
   </div><!-- /tab-monthly -->
 
   <!-- ══ TAB 2: HISTORICAL ══ -->
-  <div id="tab-historical" class="tab-panel" style="min-width:2016px;">
+  <div id="tab-historical" class="tab-panel" style="min-width:1216px;">
 
     <!-- Hero cards: 2025 + 2026 -->
     <div class="hist-heroes fade-in">
@@ -443,7 +443,7 @@
     </div>
 
     <!-- Pivot: absolute values -->
-    <div class="card fade-in" style="transition-delay:.14s;margin-bottom:.7rem;width:2016px;">
+    <div class="card fade-in" style="transition-delay:.14s;margin-bottom:.7rem;width:1216px;">
       <div class="card-title">Expense by Month × Category (S/)</div>
       <div class="pivot-scroll">
         <table class="pivot-table" id="pivot-abs"></table>
@@ -451,7 +451,7 @@
     </div>
 
     <!-- Pivot: percentages -->
-    <div class="card fade-in" style="transition-delay:.2s;width:2016px;">
+    <div class="card fade-in" style="transition-delay:.2s;width:1216px;">
       <div class="card-title">Expense % by Month × Category</div>
       <div class="pivot-scroll">
         <table class="pivot-table" id="pivot-pct"></table>
