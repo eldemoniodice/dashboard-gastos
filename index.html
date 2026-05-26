@@ -208,8 +208,75 @@
     }
     @media(min-width:600px){ .tx-table tfoot td{ padding:.42rem .7rem; font-size:.7rem; } }
     .tx-table tfoot td:first-child { text-align:left; }
-    .tx-table tfoot td.td-amt { text-align:right; color:var(--accent); padding-right:.6rem; }
-  </style>
+    /* ── TABS ── */
+    .tab-nav {
+      display:flex; gap:.4rem; margin-bottom:1rem;
+      border-bottom:1px solid var(--border); padding-bottom:0;
+    }
+    .tab-btn {
+      padding:.5rem 1.1rem; font-family:'Syne',sans-serif; font-size:.72rem; font-weight:700;
+      background:none; border:none; color:var(--muted); cursor:pointer;
+      border-bottom:2px solid transparent; margin-bottom:-1px;
+      transition:color .2s, border-color .2s; letter-spacing:.03em;
+    }
+    .tab-btn:hover { color:var(--text); }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* ── HISTORICAL VIEW ── */
+    .hist-heroes { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin-bottom:.7rem; }
+    .hist-hero {
+      border-radius:14px; padding:1.1rem 1.4rem;
+      display:flex; flex-direction:column; gap:.3rem;
+      box-shadow:var(--glow);
+    }
+    .hist-hero.y2025 { background:linear-gradient(135deg,#0d1a2e,#0e2040); border:1px solid rgba(124,108,250,.25); }
+    .hist-hero.y2026 { background:linear-gradient(135deg,#0d2318,#0a2e1a); border:1px solid rgba(0,229,160,.22); }
+    .hist-hero .hl { font-size:.56rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); }
+    .hist-hero .hv { font-size:clamp(1.4rem,5vw,2.2rem); font-weight:800; font-family:'Space Mono',monospace; line-height:1.05; }
+    .hist-hero.y2025 .hv { color:var(--accent2); }
+    .hist-hero.y2026 .hv { color:var(--accent); }
+    .hist-hero .hs { font-size:.6rem; color:var(--muted); font-family:'Space Mono',monospace; }
+
+    /* bar chart */
+    .hist-bar-wrap { position:relative; height:340px; }
+    @media(min-width:768px){ .hist-bar-wrap{ height:420px; } }
+
+    /* pivot tables */
+    .pivot-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .pivot-table { border-collapse:collapse; font-size:.65rem; white-space:nowrap; }
+    @media(min-width:600px){ .pivot-table{ font-size:.7rem; } }
+    .pivot-table th {
+      padding:.38rem .6rem; font-size:.54rem; text-transform:uppercase; letter-spacing:.07em;
+      color:var(--muted); border-bottom:1px solid var(--border);
+      font-family:'Space Mono',monospace; text-align:center; white-space:nowrap;
+      background:var(--surface); position:sticky; top:0; z-index:2;
+    }
+    .pivot-table th:first-child { text-align:left; position:sticky; left:0; z-index:3; }
+    .pivot-table th.yr-header { color:var(--text); font-size:.58rem; }
+    .pivot-table td {
+      padding:.32rem .6rem; border-bottom:1px solid rgba(30,36,51,.4);
+      text-align:right; font-family:'Space Mono',monospace; color:var(--muted);
+    }
+    .pivot-table td:first-child {
+      text-align:left; color:var(--text); font-family:'Syne',sans-serif;
+      position:sticky; left:0; background:var(--surface); z-index:1;
+      font-size:.7rem;
+    }
+    .pivot-table tr:hover td { background:rgba(255,255,255,.025); }
+    .pivot-table tr:hover td:first-child { background:var(--surface); filter:brightness(1.2); }
+    .pivot-table tfoot td {
+      border-top:2px solid var(--border); font-weight:700; color:var(--text);
+      background:var(--surface);
+    }
+    .pivot-table tfoot td:first-child { position:sticky; left:0; z-index:1; }
+    .pivot-table .col-2025 { color:var(--accent2); }
+    .pivot-table .col-2026 { color:var(--accent); }
+    /* pct highlight: max of column */
+    .pct-max { background:rgba(255,107,107,.25)!important; color:var(--accent3)!important; font-weight:700; border-radius:3px; }
+    .pct-val { color:var(--muted); }
 </head>
 <body>
 
@@ -225,96 +292,148 @@
   </header>
   <div id="error-box"></div>
 
-  <!-- ROW 1: Hero + mini KPIs -->
-  <div class="top-row fade-in">
-    <div class="hero-card">
-      <div class="hero-label">Total Expense</div>
-      <div class="hero-month" id="hero-month">—</div>
-      <div class="hero-amount" id="hero-total">—</div>
-      <div class="hero-sub" id="hero-sub">—</div>
-    </div>
-    <div class="kpi-mini-row">
-      <div class="mini-kpi">
-        <div class="mk-label">Today</div>
-        <div class="mk-value green" id="kpi-day">—</div>
-      </div>
-      <div class="mini-kpi">
-        <div class="mk-label">% Progress</div>
-        <div class="mk-value yellow" id="kpi-pct">—</div>
-        <div class="mk-sub" id="kpi-pct-sub">—</div>
-        <div class="mk-prog-track"><div class="mk-prog-fill" id="kpi-prog-fill" style="width:0%"></div></div>
-      </div>
-      <div class="mini-kpi">
-        <div class="mk-label">Days Left</div>
-        <div class="mk-value purple" id="kpi-days-left">—</div>
-        <div class="mk-sub" id="kpi-days-sub">—</div>
-      </div>
-    </div>
-  </div>
+  <!-- TAB NAV -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('monthly',this)">📅 Monthly</button>
+    <button class="tab-btn" onclick="switchTab('historical',this)">📊 Historical</button>
+  </nav>
 
-  <!-- ROW 2: Sortable summary table + Bullet chart -->
-  <div class="mid-row fade-in" style="transition-delay:.08s">
-    <div class="card">
-      <div class="card-title">Summary by Category <span style="margin-left:.5rem;font-size:.55rem;color:var(--muted);font-family:'Space Mono',monospace">↕ click column to sort</span></div>
-      <div class="sum-wrap">
-        <table class="sum-table" id="sum-table">
+  <!-- ══ TAB 1: MONTHLY ══ -->
+  <div id="tab-monthly" class="tab-panel active">
+
+    <!-- ROW 1: Hero + mini KPIs -->
+    <div class="top-row fade-in">
+      <div class="hero-card">
+        <div class="hero-label">Total Expense</div>
+        <div class="hero-month" id="hero-month">—</div>
+        <div class="hero-amount" id="hero-total">—</div>
+        <div class="hero-sub" id="hero-sub">—</div>
+      </div>
+      <div class="kpi-mini-row">
+        <div class="mini-kpi">
+          <div class="mk-label">Today</div>
+          <div class="mk-value green" id="kpi-day">—</div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mk-label">% Progress</div>
+          <div class="mk-value yellow" id="kpi-pct">—</div>
+          <div class="mk-sub" id="kpi-pct-sub">—</div>
+          <div class="mk-prog-track"><div class="mk-prog-fill" id="kpi-prog-fill" style="width:0%"></div></div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mk-label">Days Left</div>
+          <div class="mk-value purple" id="kpi-days-left">—</div>
+          <div class="mk-sub" id="kpi-days-sub">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Sortable summary table + Bullet chart -->
+    <div class="mid-row fade-in" style="transition-delay:.08s">
+      <div class="card">
+        <div class="card-title">Summary by Category <span style="margin-left:.5rem;font-size:.55rem;color:var(--muted);font-family:'Space Mono',monospace">↕ click column to sort</span></div>
+        <div class="sum-wrap">
+          <table class="sum-table" id="sum-table">
+            <thead>
+              <tr>
+                <th data-col="cat"  data-type="str">Category <span class="sort-icon">↕</span></th>
+                <th data-col="spent" data-type="num" class="r sort-desc">Expense S/ <span class="sort-icon">↓</span></th>
+                <th data-col="pctGasto" data-type="num" class="r">% Expense <span class="sort-icon">↕</span></th>
+                <th data-col="budget" data-type="num" class="r">Budget <span class="sort-icon">↕</span></th>
+                <th data-col="pctTarget" data-type="num" class="r">% Target <span class="sort-icon">↕</span></th>
+                <th data-col="saving" data-type="num" class="r">Savings <span class="sort-icon">↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="sum-tbody"></tbody>
+            <tfoot id="sum-tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Budget vs Expense — Bullet Chart</div>
+        <div style="display:flex;gap:1.2rem;margin-bottom:.8rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:20px;height:7px;background:rgba(255,255,255,.08);border-radius:2px"></div>Budget</div>
+          <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:20px;height:7px;background:var(--accent);border-radius:2px"></div>Actual Expense</div>
+          <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:2px;height:11px;background:rgba(255,255,255,.38);border-radius:1px"></div>Month Progress</div>
+        </div>
+        <div class="bullet-wrap" id="bullet-wrap"></div>
+      </div>
+    </div>
+
+    <!-- ROW 3: Timeline -->
+    <div class="card timeline-card fade-in" style="transition-delay:.16s">
+      <div class="card-title">Daily Expense Timeline <span id="line-month-label" style="color:var(--accent2);margin-left:.4rem;font-size:.6rem"></span></div>
+      <div class="line-wrap"><canvas id="chartLine"></canvas></div>
+    </div>
+
+    <!-- ROW 4: TX table -->
+    <div class="card fade-in" style="transition-delay:.24s">
+      <div class="card-title">Transaction Detail</div>
+      <div class="tx-wrap">
+        <table class="tx-table">
+          <colgroup>
+            <col class="col-day"/>
+            <col class="col-cat"/>
+            <col class="col-desc"/>
+            <col class="col-amt"/>
+          </colgroup>
           <thead>
             <tr>
-              <th data-col="cat"  data-type="str">Category <span class="sort-icon">↕</span></th>
-              <th data-col="spent" data-type="num" class="r sort-desc">Expense S/ <span class="sort-icon">↓</span></th>
-              <th data-col="pctGasto" data-type="num" class="r">% Expense <span class="sort-icon">↕</span></th>
-              <th data-col="budget" data-type="num" class="r">Budget <span class="sort-icon">↕</span></th>
-              <th data-col="pctTarget" data-type="num" class="r">% Target <span class="sort-icon">↕</span></th>
-              <th data-col="saving" data-type="num" class="r">Savings <span class="sort-icon">↕</span></th>
+              <th>Day</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th style="text-align:right">Amount</th>
             </tr>
           </thead>
-          <tbody id="sum-tbody"></tbody>
-          <tfoot id="sum-tfoot"></tfoot>
+          <tbody id="tx-tbody"></tbody>
+          <tfoot id="tx-tfoot"></tfoot>
         </table>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">Budget vs Expense — Bullet Chart</div>
-      <div style="display:flex;gap:1.2rem;margin-bottom:.8rem;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:20px;height:7px;background:rgba(255,255,255,.08);border-radius:2px"></div>Budget</div>
-        <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:20px;height:7px;background:var(--accent);border-radius:2px"></div>Actual Expense</div>
-        <div style="display:flex;align-items:center;gap:.35rem;font-size:.6rem;color:var(--muted)"><div style="width:2px;height:11px;background:rgba(255,255,255,.38);border-radius:1px"></div>Month Progress</div>
+  </div><!-- /tab-monthly -->
+
+  <!-- ══ TAB 2: HISTORICAL ══ -->
+  <div id="tab-historical" class="tab-panel">
+
+    <!-- Hero cards: 2025 + 2026 -->
+    <div class="hist-heroes fade-in">
+      <div class="hist-hero y2025">
+        <div class="hl">Total Expense 2025</div>
+        <div class="hv" id="hist-total-2025">—</div>
+        <div class="hs" id="hist-sub-2025">—</div>
       </div>
-      <div class="bullet-wrap" id="bullet-wrap"></div>
+      <div class="hist-hero y2026">
+        <div class="hl">Total Expense 2026</div>
+        <div class="hv" id="hist-total-2026">—</div>
+        <div class="hs" id="hist-sub-2026">—</div>
+      </div>
     </div>
-  </div>
 
-  <!-- ROW 3: Timeline -->
-  <div class="card timeline-card fade-in" style="transition-delay:.16s">
-    <div class="card-title">Daily Expense Timeline <span id="line-month-label" style="color:var(--accent2);margin-left:.4rem;font-size:.6rem"></span></div>
-    <div class="line-wrap"><canvas id="chartLine"></canvas></div>
-  </div>
-
-  <!-- ROW 4: TX table -->
-  <div class="card fade-in" style="transition-delay:.24s">
-    <div class="card-title">Transaction Detail</div>
-    <div class="tx-wrap">
-      <table class="tx-table">
-        <colgroup>
-          <col class="col-day"/>
-          <col class="col-cat"/>
-          <col class="col-desc"/>
-          <col class="col-amt"/>
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Day</th>
-            <th>Category</th>
-            <th>Description</th>
-            <th style="text-align:right">Amount</th>
-          </tr>
-        </thead>
-        <tbody id="tx-tbody"></tbody>
-        <tfoot id="tx-tfoot"></tfoot>
-      </table>
+    <!-- Bar chart: monthly comparison -->
+    <div class="card fade-in" style="transition-delay:.08s;margin-bottom:.7rem;">
+      <div class="card-title">Monthly Expense — 2025 vs 2026</div>
+      <div class="hist-bar-wrap"><canvas id="chartHistBar"></canvas></div>
     </div>
-  </div>
+
+    <!-- Pivot: absolute values -->
+    <div class="card fade-in" style="transition-delay:.14s;margin-bottom:.7rem;">
+      <div class="card-title">Expense by Month × Category (S/)</div>
+      <div class="pivot-scroll">
+        <table class="pivot-table" id="pivot-abs"></table>
+      </div>
+    </div>
+
+    <!-- Pivot: percentages -->
+    <div class="card fade-in" style="transition-delay:.2s;">
+      <div class="card-title">Expense % by Month × Category</div>
+      <div class="pivot-scroll">
+        <table class="pivot-table" id="pivot-pct"></table>
+      </div>
+    </div>
+
+  </div><!-- /tab-historical -->
+
 </div>
 
 <script>
@@ -793,6 +912,176 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     revealCards();
   })
   .catch(err=>{ console.error(err); showError('Error loading data. Check your connection and that the sheets are public.'); });
+
+/* ── TAB SWITCHER ── */
+let histBuilt = false;
+function switchTab(tab, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='historical' && !histBuilt && allTxGlobal.length){
+    buildHistorical();
+    histBuilt = true;
+  }
+}
+
+/* ── HISTORICAL VIEW ── */
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function buildHistorical(){
+  const totals={2025:0,2026:0}, txCount={2025:0,2026:0};
+  const byYearMonth={2025:{},2026:{}};
+  const byYearCat={2025:{},2026:{}};
+  const byYearMonthCat={2025:{},2026:{}};
+
+  allTxGlobal.forEach(r=>{
+    if(!r.dmy) return;
+    const y=r.dmy.year, m=r.dmy.month;
+    if(y!==2025&&y!==2026) return;
+    totals[y]+=r.monto; txCount[y]+=1;
+    byYearMonth[y][m]=(byYearMonth[y][m]||0)+r.monto;
+    byYearCat[y][r.categoria]=(byYearCat[y][r.categoria]||0)+r.monto;
+    if(!byYearMonthCat[y][m]) byYearMonthCat[y][m]={};
+    byYearMonthCat[y][m][r.categoria]=(byYearMonthCat[y][m][r.categoria]||0)+r.monto;
+  });
+
+  document.getElementById('hist-total-2025').textContent=fmt(totals[2025]);
+  document.getElementById('hist-sub-2025').textContent=txCount[2025]+' transactions';
+  document.getElementById('hist-total-2026').textContent=fmt(totals[2026]);
+  document.getElementById('hist-sub-2026').textContent=txCount[2026]+' transactions';
+
+  /* BAR CHART */
+  const months=[1,2,3,4,5,6,7,8,9,10,11,12];
+  new Chart(document.getElementById('chartHistBar'),{
+    type:'bar',
+    data:{
+      labels:MONTH_NAMES,
+      datasets:[
+        {label:'2025',data:months.map(m=>byYearMonth[2025][m]||0),backgroundColor:'rgba(124,108,250,.65)',borderRadius:5,borderSkipped:false},
+        {label:'2026',data:months.map(m=>byYearMonth[2026][m]||0),backgroundColor:'rgba(0,229,160,.65)',borderRadius:5,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:'#5a6380',font:{size:11,family:'Syne'},boxWidth:12,padding:14}},
+        tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)},backgroundColor:'#1e2433',titleColor:'#e8ecf4',bodyColor:'#00e5a0',borderColor:'#2d3650',borderWidth:1}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6380',font:{size:10,family:'Space Mono'}}},
+        y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#5a6380',font:{size:9,family:'Space Mono'},callback:v=>'S/'+v.toLocaleString('es-PE')}}
+      }
+    }
+  });
+
+  /* CATEGORIES sorted by combined total */
+  const allCatsHist=[...new Set([...Object.keys(byYearCat[2025]),...Object.keys(byYearCat[2026])])];
+  allCatsHist.sort((a,b)=>((byYearCat[2025][b]||0)+(byYearCat[2026][b]||0))-((byYearCat[2025][a]||0)+(byYearCat[2026][a]||0)));
+
+  buildPivotAbs(allCatsHist,months,byYearMonthCat,byYearMonth);
+  buildPivotPct(allCatsHist,months,byYearMonthCat,byYearMonth);
+
+  document.querySelectorAll('#tab-historical .fade-in').forEach((el,i)=>
+    setTimeout(()=>el.classList.add('visible'),i*80));
+}
+
+function mkTh(text,cls,rowSpan,colSpan){
+  const th=document.createElement('th');
+  th.textContent=text; if(cls) th.className=cls;
+  if(rowSpan>1) th.rowSpan=rowSpan; if(colSpan>1) th.colSpan=colSpan;
+  return th;
+}
+
+function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
+  const tbl=document.getElementById('pivot-abs'); tbl.innerHTML='';
+  const thead=tbl.createTHead();
+  const hr1=thead.insertRow();
+  hr1.appendChild(mkTh('Category','',2,1));
+  months.forEach(m=>hr1.appendChild(mkTh(MONTH_NAMES[m-1],'yr-header',1,2)));
+  hr1.appendChild(mkTh('Total','yr-header',1,2));
+  const hr2=thead.insertRow();
+  [...months,...['T']].forEach(()=>{
+    ['2025','2026'].forEach(y=>{hr2.appendChild(mkTh(y,y==='2025'?'col-2025':'col-2026'));});
+  });
+  const tbody=tbl.createTBody();
+  cats.forEach(cat=>{
+    const tr=tbody.insertRow();
+    tr.insertCell().textContent=cat;
+    months.forEach(m=>{
+      ['2025','2026'].forEach(y=>{
+        const v=(byYearMonthCat[y][m]||{})[cat]||0;
+        const td=tr.insertCell(); td.textContent=v?fmt(v):'—';
+        td.className=y==='2025'?'col-2025':'col-2026';
+        if(!v) td.style.opacity='.3';
+      });
+    });
+    ['2025','2026'].forEach(y=>{
+      const v=Object.values(byYearMonthCat[y]).reduce((s,mc)=>s+(mc[cat]||0),0);
+      const td=tr.insertCell(); td.textContent=v?fmt(v):'—';
+      td.className=y==='2025'?'col-2025':'col-2026'; td.style.fontWeight='600';
+    });
+  });
+  const tfoot=tbl.createTFoot(); const fr=tfoot.insertRow();
+  fr.insertCell().textContent='Total';
+  months.forEach(m=>{
+    ['2025','2026'].forEach(y=>{
+      const td=fr.insertCell(); const v=byYearMonth[y][m]||0;
+      td.textContent=v?fmt(v):'—'; td.className=y==='2025'?'col-2025':'col-2026';
+    });
+  });
+  ['2025','2026'].forEach(y=>{
+    const td=fr.insertCell();
+    td.textContent=fmt(Object.values(byYearMonth[y]).reduce((s,x)=>s+x,0));
+    td.className=y==='2025'?'col-2025':'col-2026';
+  });
+}
+
+function buildPivotPct(cats,months,byYearMonthCat,byYearMonth){
+  const tbl=document.getElementById('pivot-pct'); tbl.innerHTML='';
+  const thead=tbl.createTHead();
+  const hr1=thead.insertRow();
+  hr1.appendChild(mkTh('Category','',2,1));
+  months.forEach(m=>hr1.appendChild(mkTh(MONTH_NAMES[m-1],'yr-header',1,2)));
+  const hr2=thead.insertRow();
+  months.forEach(()=>{['2025','2026'].forEach(y=>{hr2.appendChild(mkTh(y,y==='2025'?'col-2025':'col-2026'));});});
+
+  // Pre-compute max per (month,year) column
+  const colMax={};
+  cats.forEach(cat=>{
+    months.forEach(m=>{['2025','2026'].forEach(y=>{
+      const key=`${m}_${y}`;
+      const mt=byYearMonth[y][m]||0;
+      const v=(byYearMonthCat[y][m]||{})[cat]||0;
+      const p=mt?v/mt*100:0;
+      if(!colMax[key]||p>colMax[key]) colMax[key]=p;
+    });});
+  });
+
+  const tbody=tbl.createTBody();
+  cats.forEach(cat=>{
+    const tr=tbody.insertRow();
+    tr.insertCell().textContent=cat;
+    months.forEach(m=>{['2025','2026'].forEach(y=>{
+      const key=`${m}_${y}`;
+      const mt=byYearMonth[y][m]||0;
+      const v=(byYearMonthCat[y][m]||{})[cat]||0;
+      const p=mt?v/mt*100:0;
+      const td=tr.insertCell();
+      td.textContent=p>0?p.toFixed(2)+'%':'0.00%';
+      const isMax=p>0&&Math.abs(p-colMax[key])<0.001;
+      if(isMax){ td.className='pct-max'; }
+      else { td.style.color=y==='2025'?'rgba(124,108,250,.6)':'rgba(0,229,160,.5)'; }
+    });});
+  });
+
+  const tfoot=tbl.createTFoot(); const fr=tfoot.insertRow();
+  fr.insertCell().textContent='Total';
+  months.forEach(m=>{['2025','2026'].forEach(y=>{
+    const td=fr.insertCell(); td.textContent='100%';
+    td.className=y==='2025'?'col-2025':'col-2026';
+  });});
+}
 </script>
 </body>
 </html>
