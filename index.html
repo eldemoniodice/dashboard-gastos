@@ -156,21 +156,51 @@
     .tx-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; max-height:420px; overflow-y:auto; }
     .tx-wrap::-webkit-scrollbar { width:3px; }
     .tx-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-    .tx-table { width:100%; border-collapse:collapse; font-size:.72rem; }
-    @media(min-width:600px){ .tx-table{ font-size:.76rem; } }
+    .tx-table { width:100%; border-collapse:collapse; font-size:.68rem; table-layout:fixed; }
+    @media(min-width:600px){ .tx-table{ font-size:.76rem; table-layout:auto; } }
+
+    /* Column widths on mobile: Day(32px) Cat(auto) Desc(auto) Amount(72px) */
+    .tx-table colgroup .col-day  { width:32px; }
+    .tx-table colgroup .col-cat  { width:28%; }
+    .tx-table colgroup .col-desc { width:auto; }
+    .tx-table colgroup .col-amt  { width:72px; }
+    @media(min-width:600px){
+      .tx-table colgroup .col-day { width:auto; }
+      .tx-table colgroup .col-cat { width:auto; }
+      .tx-table colgroup .col-amt { width:auto; }
+    }
+
     .tx-table thead th {
       position:sticky; top:0; background:var(--surface2); z-index:2;
-      padding:.42rem .7rem; font-size:.54rem; text-transform:uppercase;
-      letter-spacing:.08em; color:var(--muted); border-bottom:1px solid var(--border);
+      padding:.4rem .5rem; font-size:.52rem; text-transform:uppercase;
+      letter-spacing:.07em; color:var(--muted); border-bottom:1px solid var(--border);
       font-family:'Space Mono',monospace; text-align:center; cursor:pointer; user-select:none;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    @media(min-width:600px){
+      .tx-table thead th { padding:.42rem .7rem; font-size:.54rem; letter-spacing:.08em; }
     }
     .tx-table thead th:first-child { text-align:left; }
+    .tx-table thead th:last-child  { text-align:right; }
     .tx-table thead th:hover { color:var(--text); }
     .tx-table tbody tr { border-bottom:1px solid rgba(30,36,51,.4); transition:background .12s; }
     .tx-table tbody tr:hover { background:rgba(255,255,255,.03); }
-    .tx-table tbody td { padding:.38rem .7rem; }
-    .tx-table tfoot td { position:sticky; bottom:0; background:var(--surface2); padding:.42rem .7rem; border-top:1px solid var(--border); font-weight:700; font-family:'Space Mono',monospace; font-size:.7rem; text-align:center; }
+    .tx-table tbody td {
+      padding:.35rem .5rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    @media(min-width:600px){ .tx-table tbody td{ padding:.38rem .7rem; white-space:normal; } }
+    .tx-table tbody td.td-amt {
+      text-align:right; font-family:'Space Mono',monospace; font-weight:700;
+      color:var(--accent3); white-space:nowrap; padding-right:.6rem;
+    }
+    .tx-table tfoot td {
+      position:sticky; bottom:0; background:var(--surface2);
+      padding:.4rem .5rem; border-top:1px solid var(--border);
+      font-weight:700; font-family:'Space Mono',monospace; font-size:.68rem; text-align:center;
+    }
+    @media(min-width:600px){ .tx-table tfoot td{ padding:.42rem .7rem; font-size:.7rem; } }
     .tx-table tfoot td:first-child { text-align:left; }
+    .tx-table tfoot td.td-amt { text-align:right; color:var(--accent); padding-right:.6rem; }
   </style>
 </head>
 <body>
@@ -258,12 +288,18 @@
     <div class="card-title">Transaction Detail</div>
     <div class="tx-wrap">
       <table class="tx-table">
+        <colgroup>
+          <col class="col-day"/>
+          <col class="col-cat"/>
+          <col class="col-desc"/>
+          <col class="col-amt"/>
+        </colgroup>
         <thead>
           <tr>
             <th>Day</th>
             <th>Category</th>
             <th>Description</th>
-            <th class="r">Amount</th>
+            <th style="text-align:right">Amount</th>
           </tr>
         </thead>
         <tbody id="tx-tbody"></tbody>
@@ -460,13 +496,13 @@ function applyFilter(cat){
       <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
       <td><span class="badge-cat">${r.categoria||'—'}</span></td>
       <td>${r.detalle||'—'}</td>
-      <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+      <td class="td-amt">${fmt(r.monto)}</td>
     `;
     txTbody.appendChild(tr);
   });
   document.getElementById('tx-tfoot').innerHTML=`<tr>
     <td colspan="3" style="color:var(--muted)">Total</td>
-    <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent)">${fmt(filtTotal)}</td>
+    <td class="td-amt" style="color:var(--accent)">${fmt(filtTotal)}</td>
   </tr>`;
 }
 
@@ -527,13 +563,13 @@ function applyDayFilter(day){
       <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
       <td><span class="badge-cat">${r.categoria||'—'}</span></td>
       <td>${r.detalle||'—'}</td>
-      <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+      <td class="td-amt">${fmt(r.monto)}</td>
     `;
     txTbody.appendChild(tr);
   });
   document.getElementById('tx-tfoot').innerHTML=`<tr>
     <td colspan="3" style="color:var(--muted)">Total</td>
-    <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent)">${fmt(filtTotal)}</td>
+    <td class="td-amt" style="color:var(--accent)">${fmt(filtTotal)}</td>
   </tr>`;
 }
 
@@ -701,16 +737,24 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
       plugins:[{
         id:'barLabels',
         afterDatasetsDraw(chart){
+          // Hide labels on narrow screens to avoid overlap
+          if(chart.width < 480) return;
           const {ctx, data, scales:{x,y}} = chart;
           const meta = chart.getDatasetMeta(1);
           ctx.save();
-          ctx.font = '600 9px Space Mono, monospace';
+          // Smaller font on medium screens
+          const fs = chart.width < 700 ? 8 : 9;
+          ctx.font = `600 ${fs}px Space Mono, monospace`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
+          // Only label bars wide enough to show text without overlap
+          const barWidth = meta.data[0]?.width || 20;
           meta.data.forEach((bar,i)=>{
             const val = data.datasets[1].data[i];
             if(!val) return;
             const label = 'S/'+val.toLocaleString('es-PE',{minimumFractionDigits:0,maximumFractionDigits:0});
+            // Skip if bar is too narrow (crowded)
+            if(barWidth < 14 && i % 2 !== 0) return;
             const barTop = y.getPixelForValue(val);
             ctx.fillStyle = 'rgba(232,236,244,.78)';
             ctx.fillText(label, bar.x, barTop - 3);
@@ -725,16 +769,16 @@ Promise.all([parseCSV(CSV_TX,1), parseBudgetCSV(CSV_BUD)])
     [...allTxGlobal].sort((a,b)=>b.dmy.day-a.dmy.day).forEach(r=>{
       const tr=document.createElement('tr');
       tr.innerHTML=`
-        <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${r.dmy.day}</td>
+        <td style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted)">${r.dmy.day}</td>
         <td><span class="badge-cat">${r.categoria||'—'}</span></td>
         <td>${r.detalle||'—'}</td>
-        <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent3)">${fmt(r.monto)}</td>
+        <td class="td-amt">${fmt(r.monto)}</td>
       `;
       txTbody.appendChild(tr);
     });
     document.getElementById('tx-tfoot').innerHTML=`<tr>
       <td colspan="3" style="color:var(--muted)">Total</td>
-      <td style="text-align:center;font-family:'Space Mono',monospace;font-weight:700;color:var(--accent)">${fmt(totalGlobal)}</td>
+      <td class="td-amt" style="color:var(--accent)">${fmt(totalGlobal)}</td>
     </tr>`;
 
     hideLoader();
