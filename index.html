@@ -253,30 +253,40 @@
     .pivot-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
     .pivot-table { border-collapse:collapse; font-size:.65rem; white-space:nowrap; }
     @media(min-width:600px){ .pivot-table{ font-size:.7rem; } }
+    .pivot-table { table-layout:fixed; }
     .pivot-table th {
-      padding:.28rem .35rem; font-size:.48rem; text-transform:uppercase; letter-spacing:.05em;
+      padding:.26rem .2rem; font-size:.46rem; text-transform:uppercase; letter-spacing:.04em;
       color:var(--muted); border-bottom:1px solid var(--border);
       font-family:'Space Mono',monospace; text-align:center; white-space:nowrap;
       background:var(--surface); position:sticky; top:0; z-index:2;
+      width:52px; min-width:52px; max-width:52px; overflow:hidden;
     }
-    .pivot-table th:first-child { text-align:left; position:sticky; left:0; z-index:3; min-width:110px; }
-    .pivot-table th.yr-header { color:var(--text); font-size:.52rem; }
+    .pivot-table th:first-child {
+      text-align:left; position:sticky; left:0; z-index:3;
+      width:110px; min-width:110px; max-width:130px;
+    }
+    .pivot-table th.yr-header {
+      color:var(--text); font-size:.5rem; text-align:center;
+      width:104px; min-width:104px;
+    }
     .pivot-table td {
-      padding:.25rem .3rem; border-bottom:1px solid rgba(30,36,51,.4);
+      padding:.24rem .2rem; border-bottom:1px solid rgba(30,36,51,.4);
       text-align:center; font-family:'Space Mono',monospace; color:var(--muted);
-      font-size:.58rem; white-space:nowrap;
+      font-size:.56rem; white-space:nowrap;
+      width:52px; min-width:52px; max-width:52px; overflow:hidden;
     }
     .pivot-table td:first-child {
       text-align:left; color:var(--text); font-family:'Syne',sans-serif;
       position:sticky; left:0; background:var(--surface); z-index:1;
-      font-size:.66rem; padding-left:.5rem; min-width:110px;
+      font-size:.65rem; padding-left:.5rem;
+      width:110px; min-width:110px; max-width:130px;
     }
     .pivot-table tr:hover td { background:rgba(255,255,255,.025); }
     .pivot-table tr:hover td:first-child { background:var(--surface); filter:brightness(1.2); }
     .pivot-table tfoot td {
       border-top:2px solid var(--border); font-weight:700; color:var(--text);
-      background:var(--surface); text-align:center; font-size:.58rem;
-      padding:.28rem .3rem;
+      background:var(--surface); text-align:center; font-size:.56rem;
+      padding:.24rem .2rem;
     }
     .pivot-table tfoot td:first-child { position:sticky; left:0; z-index:1; text-align:left; padding-left:.5rem; }
     .pivot-table .col-2025 { color:var(--accent2); }
@@ -462,6 +472,7 @@ const CSV_TX  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU0KFyqapDt5O_
 const CSV_BUD = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU0KFyqapDt5O_AvB89kCOjrSrljk8h2DVzKX017dg8hzplgfeuVe4l6a7d5o79bKImC7wMLcnpQXH/pub?gid=545803653&single=true&output=csv';
 const MONTHS_ES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const fmt    = n => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:2}).format(n);
+const fmt0   = n => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
 const pctFmt = (a,b) => b ? ((a/b)*100).toFixed(2)+'%' : '—';
 
 function showError(m){ const b=document.getElementById('error-box'); b.textContent='⚠ '+m; b.style.display='block'; hideLoader(); }
@@ -1073,7 +1084,7 @@ function buildYearSummary(cats, byYearCat, totals){
     ['2025','2026'].forEach(y=>{
       const v=byYearCat[y][cat]||0;
       const pct=totals[y]?v/totals[y]*100:0;
-      const tdV=tr.insertCell(); tdV.textContent=v?fmt(v):'—';
+      const tdV=tr.insertCell(); tdV.textContent=v?fmt0(v):'—';
       tdV.className=y==='2025'?'col-2025':'col-2026';
       if(!v) tdV.style.opacity='.3';
       const tdP=tr.insertCell(); tdP.textContent=pct>0?pct.toFixed(2)+'%':'—';
@@ -1087,7 +1098,7 @@ function buildYearSummary(cats, byYearCat, totals){
   const fr=tfoot.insertRow();
   fr.insertCell().textContent='Total';
   ['2025','2026'].forEach(y=>{
-    const td1=fr.insertCell(); td1.textContent=fmt(totals[y]);
+    const td1=fr.insertCell(); td1.textContent=fmt0(totals[y]);
     td1.className=y==='2025'?'col-2025':'col-2026';
     const td2=fr.insertCell(); td2.textContent='100%';
     td2.className=y==='2025'?'col-2025':'col-2026';
@@ -1148,7 +1159,7 @@ function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
         const key=m+'_'+y;
         const v=(byYearMonthCat[y][m]||{})[cat]||0;
         const td=tr.insertCell();
-        td.textContent=v?fmt(v):'—';
+        td.textContent=v?fmt0(v):'—';
         td.style.textAlign='center';
         if(v){
           td.style.background=heatColor(v,colMaxAbs[key]||1);
@@ -1165,7 +1176,7 @@ function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
       const v=Object.values(byYearMonthCat[y]).reduce((s,mc)=>s+(mc[cat]||0),0);
       const maxForYear=Math.max(...months.map(m=>(byYearMonthCat[y][m]||{})[cat]||0))*months.length*0.25;
       const td=tr.insertCell();
-      td.textContent=v?fmt(v):'—';
+      td.textContent=v?fmt0(v):'—';
       td.style.textAlign='center';
       td.style.fontWeight='700';
       if(v){ td.style.background=heatColor(v,maxForYear||1); td.style.color='var(--text)'; }
@@ -1176,12 +1187,12 @@ function buildPivotAbs(cats,months,byYearMonthCat,byYearMonth){
   months.forEach(m=>{
     ['2025','2026'].forEach(y=>{
       const td=fr.insertCell(); const v=byYearMonth[y][m]||0;
-      td.textContent=v?fmt(v):'—'; td.className=y==='2025'?'col-2025':'col-2026'; td.style.textAlign='center';
+      td.textContent=v?fmt0(v):'—'; td.className=y==='2025'?'col-2025':'col-2026'; td.style.textAlign='center';
     });
   });
   ['2025','2026'].forEach(y=>{
     const td=fr.insertCell();
-    td.textContent=fmt(Object.values(byYearMonth[y]).reduce((s,x)=>s+x,0));
+    td.textContent=fmt0(Object.values(byYearMonth[y]).reduce((s,x)=>s+x,0));
     td.className=y==='2025'?'col-2025':'col-2026'; td.style.textAlign='center';
   });
 }
