@@ -976,7 +976,11 @@ function buildHistorical(){
   document.getElementById('hist-total-2026').textContent=fmt(totals[2026]);
   document.getElementById('hist-sub-2026').textContent=txCount[2026]+' transactions';
 
-  /* YEAR SUMMARY TABLE: Category | 2025 Expense | 2025 % | 2026 Expense | 2026 % */
+  /* CATEGORIES A→Z */
+  const allCatsHist=[...new Set([...Object.keys(byYearCat[2025]),...Object.keys(byYearCat[2026])])];
+  allCatsHist.sort((a,b)=>a.localeCompare(b));
+
+  /* YEAR SUMMARY TABLE */
   buildYearSummary(allCatsHist, byYearCat, totals);
 
   /* HORIZONTAL BAR CHART with data labels */
@@ -1027,9 +1031,6 @@ function buildHistorical(){
   });
 
   /* CATEGORIES sorted by combined total */
-  const allCatsHist=[...new Set([...Object.keys(byYearCat[2025]),...Object.keys(byYearCat[2026])])];
-  allCatsHist.sort((a,b)=>a.localeCompare(b));
-
   buildPivotAbs(allCatsHist,months,byYearMonthCat,byYearMonth);
   buildPivotPct(allCatsHist,months,byYearMonthCat,byYearMonth);
 
